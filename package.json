@@ -1,0 +1,43 @@
+{
+  "name": "hmpps-open-layers-map",
+  "version": "0.0.6",
+  "description": "A native Web Component for displaying maps using OpenLayers.",
+  "main": "dist/moj-map.iife.js",
+  "module": "dist/moj-map.es.js",
+  "types": "dist/types/moj-map.d.ts",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && tsc",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "web-component",
+    "openlayers",
+    "map",
+    "moj",
+    "govuk",
+    "typescript",
+    "frontend",
+    "geodata",
+    "gis",
+    "component"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "sass-embedded": "^1.89.2",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.4",
+    "vite-plugin-css-injected-by-js": "^3.5.2"
+  },
+  "dependencies": {
+    "ol": "^10.6.1"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  }
+}
