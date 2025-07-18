@@ -2,7 +2,9 @@ import Map from 'ol/Map'
 import BaseLayer from 'ol/layer/Base'
 import VectorLayer from 'ol/layer/Vector'
 import OrdnanceSurveyTileLayer from './map/tiles'
+import LocationPointerInteraction from './map/location-pointer-interaction'
 import MojMapInstance from './map/map-instance'
+import FeatureOverlay from './map/feature-overlay'
 import { createMapDOM, createScopedStyle, getRawNonce } from './helpers/dom'
 import { parseGeoJSON, fetchAccessToken } from './helpers/map'
 
@@ -35,6 +37,7 @@ export class MojMap extends HTMLElement {
     const tokenUrl = this.getAttribute('access-token-url') || '/map/token'
     const geojsonData = this.getAttribute('geojson')
     const showOverlay = this.getAttribute('show-overlay') === 'true'
+    const overlayTemplateId = this.getAttribute('overlay-template-id')
 
     let accessToken = ''
     try {
@@ -61,13 +64,19 @@ export class MojMap extends HTMLElement {
       osMapsTileUrl: tileUrl,
       osMapsAccessToken: accessToken,
       layers,
-      // overlays: [], // To be added later
-      // interactions: [] // To be added later
     })
 
-    const overlay = this.shadow.querySelector('.app-map__overlay') as HTMLElement
-    if (overlay) {
-      overlay.hidden = !showOverlay
+    if (showOverlay && overlayTemplateId) {
+      const template = document.getElementById(overlayTemplateId) as HTMLTemplateElement
+      if (template) {
+        const featureOverlay = new FeatureOverlay(template)
+        this.map.addOverlay(featureOverlay)
+
+        const pointerInteraction = new LocationPointerInteraction(featureOverlay)
+        this.map.addInteraction(pointerInteraction)
+      } else {
+        console.warn(`No <template> found with id="${overlayTemplateId}"`)
+      }
     }
   }
 

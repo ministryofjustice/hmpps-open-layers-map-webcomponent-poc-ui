@@ -73,3 +73,38 @@ The map must be placed inside a container that has a defined height. If the cont
 | `show-overlay`     | (Optional) `'true'` or `'false'` — toggles display of an overlay element. |
 
 ---
+
+## 🧩 Feature Overlay Templating
+
+The `<moj-map>` component supports displaying an overlay with custom HTML content when a feature is clicked.
+
+To enable overlays:
+
+```html
+<moj-map
+  geojson='{"type":"FeatureCollection","features":[...]}'
+  show-overlay="true"
+  overlay-template-id="map-overlay-template"
+></moj-map>
+
+<template id="map-overlay-template">
+  <div>
+    <strong>Speed:</strong> {{speed}} km/h<br />
+    <strong>Timestamp:</strong> {{recordedAt}}
+  </div>
+</template>
+```
+
+### 🧠 Notes
+
+- The `overlay-template-id` should match the `id` of a `<template>` element in your DOM.
+- Your template can include `{{property}}` tokens that will be replaced with the feature's properties.
+- Missing properties will render as empty.
+- In development, missing tokens can emit a warning in the console.
+
+Example console warning if properties are missing:
+```bash
+Overlay template references missing properties: direction, altitude
+```
+
+The component handles only basic token replacement and leaves formatting and structure entirely to the consuming team.
