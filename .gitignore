@@ -1,0 +1,15 @@
+# Build output
+dist/
+
+# Sass output
+src/moj-map.raw.css
+src/moj-map.raw.css.map
+
+# Node dependencies
+node_modules/
+
+# IDEs
+.vscode/
+.DS_Store
+
+.env

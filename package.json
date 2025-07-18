@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.0.6",
+  "version": "0.1.14",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "dist/moj-map.iife.js",
   "module": "dist/moj-map.es.js",
@@ -11,7 +11,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc",
+    "build:css": "sass --no-source-map --quiet-deps --load-path=node_modules src/styles/moj-map.scss src/styles/moj-map.raw.css",
+    "build": "npm run build:css && vite build && tsc",
     "preview": "vite preview"
   },
   "keywords": [
@@ -26,18 +27,35 @@
     "gis",
     "component"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/moj-map.es.js",
+      "require": "./dist/moj-map.iife.js"
+    },
+    "./tile-token-proxy": {
+      "types": "./dist/types/scripts/tile-token-proxy/index.d.ts",
+      "import": "./dist/scripts/tile-token-proxy/index.js",
+      "require": "./dist/scripts/tile-token-proxy/index.js"
+    }
+  },
+  "files": [
+    "dist/"
+  ],
   "license": "MIT",
+  "dependencies": {
+    "@types/qs": "^6.9.18",
+    "axios": "^1.9.0",
+    "dotenv": "^17.2.0",
+    "express": "^4.21.2",
+    "govuk-frontend": "^5.11.0",
+    "ol": "^10.6.1",
+    "superagent": "^10.2.0"
+  },
   "devDependencies": {
-    "sass-embedded": "^1.89.2",
+    "@types/express": "^5.0.3",
+    "@types/superagent": "^8.1.9",
     "typescript": "^5.8.3",
     "vite": "^7.0.4",
-    "vite-plugin-css-injected-by-js": "^3.5.2"
-  },
-  "dependencies": {
-    "ol": "^10.6.1"
-  },
-  "engines": {
-    "node": ">=20",
-    "npm": ">=10"
+    "vite-plugin-string": "^1.2.3"
   }
 }
