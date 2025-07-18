@@ -76,22 +76,15 @@ nunjucks.configure([
 ### `components/moj-map/template.njk`
 
 ```njk
-<moj-map
-  access-token-url="{{ params.accessTokenUrl | default('/map/token') }}"
-  tile-url="{{ params.tileUrl | default('/map/tiles') }}"
-  geojson='{{ params.geojson | dump | safe }}'
-  show-overlay="{{ params.showOverlay | default(false) }}"
-  overlay-template-id="{{ params.templateId | default('map-overlay-template') }}"
-  csp-nonce="{{ cspNonce }}"
-></moj-map>
-```
+{% from "components/moj-map/macro.njk" import mojMap %}
 
-### `components/moj-map/macro.njk`
-
-```njk
-{% macro mojMap(params = {}) %}
-  {% include "components/moj-map/template.njk" with params %}
-{% endmacro %}
+{{ mojMap({
+  accessTokenUrl: '/map/token',
+  tileUrl: 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}',
+  geojson: geojson,
+  showOverlay: true,
+  templateId: 'map-overlay-template'
+}) }}
 ```
 
 ---
