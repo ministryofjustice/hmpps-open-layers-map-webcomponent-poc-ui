@@ -71,7 +71,7 @@ nunjucks.configure([
   '*your-applications-views*',
   'node_modules/hmpps-open-layers-map/nunjucks'
 ])
-``
+```
 
 ### `components/moj-map/template.njk`
 
