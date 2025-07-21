@@ -1,3 +1,3 @@
-{%- macro mojMap(params = {}) -%}
-  {%- include "moj/components/moj-map/template.njk" with params -%}
-{%- endmacro -%}
+{% macro mojMap(params) %}
+  {%- include "./template.njk" -%}
+{% endmacro %}

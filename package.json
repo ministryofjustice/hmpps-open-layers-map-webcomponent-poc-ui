@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "dist/moj-map.iife.js",
   "module": "dist/moj-map.es.js",
