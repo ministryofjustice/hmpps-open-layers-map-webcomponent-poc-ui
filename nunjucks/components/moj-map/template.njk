@@ -4,5 +4,5 @@
   geojson='{{ params.geojson | dump | safe }}'
   show-overlay="{{ params.showOverlay | default(false) }}"
   overlay-template-id="{{ params.templateId | default('map-overlay-template') }}"
-  csp-nonce="{{ cspNonce }}"
+  csp-nonce="{{ params.cspNonce }}"
 ></moj-map>
