@@ -11,6 +11,15 @@ import { parseGeoJSON, fetchAccessToken } from './helpers/map'
 import 'ol/ol.css'
 import styles from '../styles/moj-map.raw.css?raw'
 
+// -- Optional: Structured options type for internal use --
+type MojMapOptions = {
+  tileUrl: string
+  tokenUrl: string
+  geojsonData?: string
+  showOverlay: boolean
+  overlayTemplateId?: string
+}
+
 export class MojMap extends HTMLElement {
   rawNonce: string | null = null
   map!: Map
@@ -28,31 +37,37 @@ export class MojMap extends HTMLElement {
     await this.initializeMap()
     this.dispatchEvent(new CustomEvent('map:ready', {
       detail: { map: this.map },
-      bubbles: true
+      bubbles: true,
     }))
   }
 
+  private parseAttributes(): MojMapOptions {
+    return {
+      tileUrl: this.getAttribute('tile-url') || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      tokenUrl: this.getAttribute('access-token-url') || '/map/token',
+      geojsonData: this.getAttribute('geojson') || undefined,
+      showOverlay: this.getAttribute('show-overlay') === 'true',
+      overlayTemplateId: this.getAttribute('overlay-template-id') || undefined,
+    }
+  }
+
   private async initializeMap() {
-    const tileUrl = this.getAttribute('tile-url') || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-    const tokenUrl = this.getAttribute('access-token-url') || '/map/token'
-    const geojsonData = this.getAttribute('geojson')
-    const showOverlay = this.getAttribute('show-overlay') === 'true'
-    const overlayTemplateId = this.getAttribute('overlay-template-id')
+    const options = this.parseAttributes()
 
     let accessToken = ''
     try {
-      if (tokenUrl.toLowerCase() !== 'none') {
-        accessToken = await fetchAccessToken(tokenUrl)
+      if (options.tokenUrl.toLowerCase() !== 'none') {
+        accessToken = await fetchAccessToken(options.tokenUrl)
       }
     } catch (err) {
       console.error('Failed to retrieve access token:', err)
     }
 
-    const tileLayer = new OrdnanceSurveyTileLayer(tileUrl, accessToken)
+    const tileLayer = new OrdnanceSurveyTileLayer(options.tileUrl, accessToken)
     const layers: BaseLayer[] = [tileLayer]
 
-    if (geojsonData) {
-      const vectorSource = parseGeoJSON(geojsonData)
+    if (options.geojsonData) {
+      const vectorSource = parseGeoJSON(options.geojsonData)
       if (vectorSource) {
         this.vectorLayer = new VectorLayer({ source: vectorSource })
         layers.push(this.vectorLayer)
@@ -61,13 +76,13 @@ export class MojMap extends HTMLElement {
 
     this.map = new MojMapInstance({
       target: this.shadow.querySelector('#map') as HTMLElement,
-      osMapsTileUrl: tileUrl,
+      osMapsTileUrl: options.tileUrl,
       osMapsAccessToken: accessToken,
       layers,
     })
 
-    if (showOverlay && overlayTemplateId) {
-      const template = document.getElementById(overlayTemplateId) as HTMLTemplateElement
+    if (options.showOverlay && options.overlayTemplateId) {
+      const template = document.getElementById(options.overlayTemplateId) as HTMLTemplateElement
       if (template) {
         const featureOverlay = new FeatureOverlay(template)
         this.map.addOverlay(featureOverlay)
@@ -75,9 +90,22 @@ export class MojMap extends HTMLElement {
         const pointerInteraction = new LocationPointerInteraction(featureOverlay)
         this.map.addInteraction(pointerInteraction)
       } else {
-        console.warn(`No <template> found with id="${overlayTemplateId}"`)
+        console.warn(`No <template> found with id="${options.overlayTemplateId}"`)
       }
     }
+
+    // Cypress event
+    this.map.on('rendercomplete', () => {
+      if (typeof window !== 'undefined' && (window as any).Cypress) {
+        const root = this.getRootNode()
+        if (root instanceof ShadowRoot) {
+          const host = root.host as HTMLElement
+          host.dispatchEvent(new CustomEvent('map:render:complete', {
+            detail: { mapInstance: this.map },
+          }))
+        }
+      }
+    })
   }
 
   render() {

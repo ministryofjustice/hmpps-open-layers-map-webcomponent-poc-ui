@@ -1,10 +1,10 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.2.8",
+  "version": "0.2.25",
   "description": "A native Web Component for displaying maps using OpenLayers.",
-  "main": "dist/moj-map.iife.js",
-  "module": "dist/moj-map.es.js",
-  "types": "dist/types/moj-map.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.es.js",
+  "types": "./dist/types/index.d.ts",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -29,8 +29,9 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/moj-map.es.js",
-      "require": "./dist/moj-map.iife.js"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.iife.js"
     },
     "./tile-token-proxy": {
       "types": "./dist/types/scripts/tile-token-proxy/index.d.ts",
@@ -57,6 +58,7 @@
     "@types/superagent": "^8.1.9",
     "typescript": "^5.8.3",
     "vite": "^7.0.4",
-    "vite-plugin-string": "^1.2.3"
+    "vite-plugin-string": "^1.2.3",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

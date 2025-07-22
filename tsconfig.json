@@ -9,11 +9,12 @@
     "lib": ["DOM", "ES2022"],
     "declaration": true,
     "declarationDir": "dist/types",
-    "emitDeclarationOnly": false,  // must be false to emit JS too
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@scripts/*": ["scripts/*"]
+    }
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["src"]
 }
-
