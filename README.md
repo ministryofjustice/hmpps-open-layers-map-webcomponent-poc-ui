@@ -51,7 +51,8 @@ Add the following where you want the map to appear:
 <moj-map
   tile-url="https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}"
   access-token-url="/map/token"
-  geojson='{"type": "FeatureCollection", "features": [...] }'
+  points='[...]'
+  lines='[...]'
   show-overlay="true"
   overlay-template-id="map-overlay-template"
   csp-nonce="your-csp-nonce"
@@ -82,7 +83,10 @@ nunjucks.configure([
     accessTokenUrl: '/map/token',
     cspNonce: cspNonce,
     tileUrl: 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}',
-    geojson: geojson,
+    geoData:  {
+      points: points,
+      lines: lines
+    },
     showOverlay: true,
     templateId: 'map-overlay-template'
   }) }}

@@ -5,23 +5,23 @@ import OrdnanceSurveyTileLayer from './map/tiles'
 import LocationPointerInteraction from './map/location-pointer-interaction'
 import MojMapInstance from './map/map-instance'
 import FeatureOverlay from './map/feature-overlay'
-import { createMapDOM, createScopedStyle, getRawNonce } from './helpers/dom'
-import { parseGeoJSON, fetchAccessToken } from './helpers/map'
+import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
+import { fetchAccessToken } from './helpers/map'
 
-import 'ol/ol.css'
+//import 'ol/ol.css'
 import styles from '../styles/moj-map.raw.css?raw'
 
-// -- Optional: Structured options type for internal use --
 type MojMapOptions = {
   tileUrl: string
   tokenUrl: string
-  geojsonData?: string
+  points?: string
+  lines?: string
   showOverlay: boolean
   overlayTemplateId?: string
 }
 
 export class MojMap extends HTMLElement {
-  rawNonce: string | null = null
+  mapNonce: string | null = null
   map!: Map
   vectorLayer?: VectorLayer
   shadow: ShadowRoot
@@ -32,7 +32,7 @@ export class MojMap extends HTMLElement {
   }
 
   async connectedCallback() {
-    this.rawNonce = getRawNonce(this)
+    this.mapNonce = getMapNonce(this)
     this.render()
     await this.initializeMap()
     this.dispatchEvent(new CustomEvent('map:ready', {
@@ -45,7 +45,8 @@ export class MojMap extends HTMLElement {
     return {
       tileUrl: this.getAttribute('tile-url') || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       tokenUrl: this.getAttribute('access-token-url') || '/map/token',
-      geojsonData: this.getAttribute('geojson') || undefined,
+      points: this.getAttribute('points') || undefined,
+      lines: this.getAttribute('lines') || undefined,
       showOverlay: this.getAttribute('show-overlay') === 'true',
       overlayTemplateId: this.getAttribute('overlay-template-id') || undefined,
     }
@@ -65,14 +66,6 @@ export class MojMap extends HTMLElement {
 
     const tileLayer = new OrdnanceSurveyTileLayer(options.tileUrl, accessToken)
     const layers: BaseLayer[] = [tileLayer]
-
-    if (options.geojsonData) {
-      const vectorSource = parseGeoJSON(options.geojsonData)
-      if (vectorSource) {
-        this.vectorLayer = new VectorLayer({ source: vectorSource })
-        layers.push(this.vectorLayer)
-      }
-    }
 
     this.map = new MojMapInstance({
       target: this.shadow.querySelector('#map') as HTMLElement,
@@ -108,14 +101,36 @@ export class MojMap extends HTMLElement {
     })
   }
 
+  get points(): any | undefined {
+    const points = this.getAttribute('points')
+    if (!points) return []
+    try {
+      return JSON.parse(points)
+    } catch {
+      console.warn('Invalid JSON in points attribute')
+      return []
+    }
+  }
+
+  get lines(): any | undefined {
+    const lines = this.getAttribute('lines')
+    if (!lines) return []
+    try {
+      return JSON.parse(lines)
+    } catch {
+      console.warn('Invalid JSON in lines attribute')
+      return []
+    }
+  }
+
   render() {
-    if (this.rawNonce === null) {
+    if (this.mapNonce === null) {
       console.log('Warning: No CSP nonce provided. Styles may not be applied correctly.')
       return
     }
 
     this.shadow.innerHTML = ''
-    this.shadow.appendChild(createScopedStyle(styles, this.rawNonce))
+    this.shadow.appendChild(createScopedStyle(styles, this.mapNonce))
     this.shadow.appendChild(createMapDOM())
   }
 }

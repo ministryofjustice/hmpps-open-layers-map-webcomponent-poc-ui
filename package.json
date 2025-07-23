@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.2.25",
+  "version": "0.3.1",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
@@ -50,12 +50,12 @@
     "dotenv": "^17.2.0",
     "express": "^4.21.2",
     "govuk-frontend": "^5.11.0",
-    "ol": "^10.6.1",
     "superagent": "^10.2.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/superagent": "^8.1.9",
+    "ol": "^10.6.1",
     "typescript": "^5.8.3",
     "vite": "^7.0.4",
     "vite-plugin-string": "^1.2.3",

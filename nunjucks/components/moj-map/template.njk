@@ -1,7 +1,8 @@
 <moj-map
   access-token-url="{{ params.accessTokenUrl | default('/map/token') }}"
   tile-url="{{ params.tileUrl | default('/map/tiles') }}"
-  geojson='{{ params.geojson | dump | safe }}'
+  points='{{ params.geoData.points | dump(false) | safe }}'
+  lines='{{ params.geoData.lines | dump(false) | safe }}'
   show-overlay="{{ params.showOverlay | default(false) }}"
   overlay-template-id="{{ params.templateId | default('map-overlay-template') }}"
   csp-nonce="{{ params.cspNonce }}"
