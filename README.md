@@ -290,12 +290,47 @@ moj-map::part(app-map__overlay-body) {
   font-size: 16px;
   padding: 10px;
 }
+```
 
-/* Example of how to access any selectors passed to the map component in the HTML template */
-moj-map::part(app-map__overlay-body) .example-child-selector {
-  display: contents;
+## Styling Overlay Content Passed via Templates
+
+If you use the `overlay-template-id` attribute to define custom overlay content, the HTML inside your `<template>` is rendered inside the component's **Shadow DOM**. This means **normal CSS selectors from outside the component will not apply** unless you explicitly expose elements using `part`.
+
+### Why class selectors don’t work alone
+
+This **won’t work**:
+
+```css
+moj-map::part(app-map__overlay-body) .app-map__overlay-row {
+  /* ❌ This selector will NOT apply */
 }
 ```
+
+The `.app-map__overlay-row` element lives inside Shadow DOM and is not exposed with a `part` attribute, so your app cannot style it from outside.
+
+---
+
+### ✅ Correct approach using `part`
+
+Update your template like this:
+
+```html
+<template id="map-overlay-template">
+  <div part="app-map__overlay-row"><strong>Speed: </strong><span>{{ speed }} km/h</span></div>
+  <div part="app-map__overlay-row"><strong>Direction: </strong><span>{{ direction }}&deg;</span></div>
+</template>
+```
+
+Then you can style it from your application:
+
+```css
+moj-map::part(app-map__overlay-row) {
+  display: contents;
+  font-size: 16px;
+  gap: 4px 12px;
+}
+```
+---
 
 > These styles should be added to your app’s main SCSS/CSS bundle — they’ll automatically apply to overlays rendered by the map component.
 
