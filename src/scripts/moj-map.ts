@@ -8,7 +8,6 @@ import FeatureOverlay from './map/feature-overlay'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
 import { fetchAccessToken } from './helpers/map'
 
-//import 'ol/ol.css'
 import styles from '../styles/moj-map.raw.css?raw'
 
 type MojMapOptions = {
@@ -16,15 +15,16 @@ type MojMapOptions = {
   tokenUrl: string
   points?: string
   lines?: string
-  showOverlay: boolean
+  usesInternalOverlays: boolean
   overlayTemplateId?: string
 }
 
 export class MojMap extends HTMLElement {
-  mapNonce: string | null = null
-  map!: Map
-  vectorLayer?: VectorLayer
-  shadow: ShadowRoot
+  private mapNonce: string | null = null
+  private map!: Map
+  private vectorLayer?: VectorLayer
+  private shadow: ShadowRoot
+  private featureOverlay?: FeatureOverlay
 
   constructor() {
     super()
@@ -41,13 +41,41 @@ export class MojMap extends HTMLElement {
     }))
   }
 
+  // Access geoJSON points object by attribute e.g. mojMap.points
+  public get points(): any | undefined {
+    const points = this.getAttribute('points')
+    if (!points) return []
+    try {
+      return JSON.parse(points)
+    } catch {
+      console.warn('Invalid JSON in points attribute')
+      return []
+    }
+  }
+
+  // Access geoJSON lines object by attribute e.g. mojMap.lines
+  public get lines(): any | undefined {
+    const lines = this.getAttribute('lines')
+    if (!lines) return []
+    try {
+      return JSON.parse(lines)
+    } catch {
+      console.warn('Invalid JSON in lines attribute')
+      return []
+    }
+  }
+
+  public closeOverlay() {
+    this.featureOverlay?.close()
+  }
+
   private parseAttributes(): MojMapOptions {
     return {
       tileUrl: this.getAttribute('tile-url') || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       tokenUrl: this.getAttribute('access-token-url') || '/map/token',
       points: this.getAttribute('points') || undefined,
       lines: this.getAttribute('lines') || undefined,
-      showOverlay: this.getAttribute('show-overlay') === 'true',
+      usesInternalOverlays: this.hasAttribute('uses-internal-overlays'),
       overlayTemplateId: this.getAttribute('overlay-template-id') || undefined,
     }
   }
@@ -74,16 +102,18 @@ export class MojMap extends HTMLElement {
       layers,
     })
 
-    if (options.showOverlay && options.overlayTemplateId) {
-      const template = document.getElementById(options.overlayTemplateId) as HTMLTemplateElement
-      if (template) {
-        const featureOverlay = new FeatureOverlay(template)
-        this.map.addOverlay(featureOverlay)
+    if (options.usesInternalOverlays && options.overlayTemplateId) {
+      const template = document.getElementById(options.overlayTemplateId)
+      const overlayEl = this.shadow.querySelector('.app-map__overlay')
 
-        const pointerInteraction = new LocationPointerInteraction(featureOverlay)
+      if (template instanceof HTMLTemplateElement && overlayEl instanceof HTMLElement) {
+        this.featureOverlay = new FeatureOverlay(template, overlayEl)
+        this.map.addOverlay(this.featureOverlay)
+
+        const pointerInteraction = new LocationPointerInteraction(this.featureOverlay)
         this.map.addInteraction(pointerInteraction)
       } else {
-        console.warn(`No <template> found with id="${options.overlayTemplateId}"`)
+        console.warn('[moj-map] Internal overlays enabled but template or overlay element not found.')
       }
     }
 
@@ -99,28 +129,6 @@ export class MojMap extends HTMLElement {
         }
       }
     })
-  }
-
-  get points(): any | undefined {
-    const points = this.getAttribute('points')
-    if (!points) return []
-    try {
-      return JSON.parse(points)
-    } catch {
-      console.warn('Invalid JSON in points attribute')
-      return []
-    }
-  }
-
-  get lines(): any | undefined {
-    const lines = this.getAttribute('lines')
-    if (!lines) return []
-    try {
-      return JSON.parse(lines)
-    } catch {
-      console.warn('Invalid JSON in lines attribute')
-      return []
-    }
   }
 
   render() {

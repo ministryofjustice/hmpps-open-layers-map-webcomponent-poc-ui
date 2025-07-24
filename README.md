@@ -53,7 +53,7 @@ Add the following where you want the map to appear:
   access-token-url="/map/token"
   points='[...]'
   lines='[...]'
-  show-overlay="true"
+  uses-internal-overlays
   overlay-template-id="map-overlay-template"
   csp-nonce="your-csp-nonce"
 ></moj-map>
@@ -79,17 +79,17 @@ nunjucks.configure([
 ```njk
 {% from "components/moj-map/macro.njk" import mojMap %}
 
-  {{ mojMap({
-    accessTokenUrl: '/map/token',
-    cspNonce: cspNonce,
-    tileUrl: 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}',
-    geoData:  {
-      points: points,
-      lines: lines
-    },
-    showOverlay: true,
-    templateId: 'map-overlay-template'
-  }) }}
+{{ mojMap({
+  accessTokenUrl: '/map/token',
+  cspNonce: cspNonce,
+  tileUrl: 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}',
+  geoData: {
+    points: points,
+    lines: lines
+  },
+  usesInternalOverlays: true,
+  templateId: 'map-overlay-template'
+}) }}
 ```
 
 ---
@@ -102,25 +102,36 @@ The map must be placed inside a container that has a defined height. If the cont
 
 ## Component Attributes
 
-| Attribute              | Description                                                               |
-|------------------------|---------------------------------------------------------------------------|
-| `tile-url`             | Tile server URL (e.g. Ordnance Survey Raster Tiles).                      |
-| `access-token-url`     | (Optional) URL to fetch an access token (your middleware endpoint).       |
-| `geojson`              | (Optional) Stringified GeoJSON for displaying overlay features.           |
-| `show-overlay`         | (Optional) `'true'` or `'false'` — toggles display of an overlay element. |
-| `overlay-template-id`  | (Optional) ID of a `<template>` to render overlay content.                |
+| Attribute                | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| `tile-url`               | URL of the tile server used for the basemap (e.g. Ordnance Survey Raster). |
+| `access-token-url`       | (Optional) Endpoint to fetch an access token. Set to `'none'` to skip.      |
+| `points`                 | (Optional) JSON array of point features.                        |
+| `lines`                  | (Optional) JSON array of line features.                         |
+| `uses-internal-overlays`| (Optional) If present, enables built-in overlay and pointer interaction.     |
+| `overlay-template-id`    | (Optional) ID of a `<template>` element in the DOM used for overlay content.|
+| `csp-nonce`              | (Optional) Nonce value to allow inline styles under CSP.                    |
+
+> ⚠️ `uses-internal-overlays` is a boolean attribute: if it exists, internal overlays will be used. Omit entirely if you want to manage overlays yourself from outside the component.
+
 
 ---
 
 ## Feature Overlay Templating
 
-To enable overlays:
+A common usage of OpenLayers maps is to allow the user to select a map feature which will show an anchored overlay containing data associated with that feature.
+
+To enable overlays add a HTML template with an ID and pass the ID to the component to render using the **overlay-template-id** attribute:
 
 ```html
 <moj-map
-  geojson='{"type":"FeatureCollection","features":[...]}'
-  show-overlay="true"
+  tile-url="https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}"
+  access-token-url="/map/token"
+  points='[...]'
+  lines='[...]'
+  uses-internal-overlays
   overlay-template-id="map-overlay-template"
+  csp-nonce="your-csp-nonce"
 ></moj-map>
 
 <template id="map-overlay-template">
@@ -133,21 +144,112 @@ To enable overlays:
 
 - The template will be used when a feature is clicked.
 - Tokens like `{{speed}}` are dynamically replaced with matching feature properties.
-- Missing tokens will render blank and optionally warn in dev console.
+- These feature properties are passed in the `points` array as plain objects. Each object should include the keys (e.g. `speed`, `timestamp`, etc.) that your overlay template expects.
+
+> Example point feature in JSON:
+> ```json
+> {
+>   "type": "location-point",
+>   "speed": 12.5,
+>   "timestamp": "2025-07-23T12:00:00Z"
+> }
+> ```
 
 ---
 
-> **Note**: If you're embedding the overlay template in your Nunjucks page, wrap the content in `{% raw %}` to prevent token interpolation:
+> **Note**: If you're embedding the overlay template in Nunjucks, wrap the content in `{% raw %}` to prevent token interpolation:
 
 ```njk
 {% raw %}
 <template id="map-overlay-template">
   <div>
     <strong>Speed:</strong> {{speed}} km/h
+    <strong>Timestamp:</strong> {{recordedAt}}
   </div>
 </template>
 {% endraw %}
 ```
+
+---
+
+### Styling the Map Overlay (from your app)
+
+You can customise the map overlay using regular CSS or Sass. The `<moj-map>` web component exposes parts of the overlay using `::part`, which allows you to style them from outside the Shadow DOM.
+
+#### Example SCSS
+
+```scss
+/* Overlay container */
+moj-map::part(app-map__overlay) {
+  position: relative;
+  background-color: govuk-colour("white");
+  border: 1px solid govuk-colour("black");
+  min-width: 180px;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(govuk-colour("black"), 0.1);
+}
+
+/* Arrow border */
+moj-map::part(app-map__overlay)::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -25px;
+  transform: translateX(-50%);
+  border-width: 12px;
+  border-style: solid;
+  border-color: govuk-colour("black") transparent transparent transparent;
+  z-index: -1;
+}
+
+/* Arrow fill */
+moj-map::part(app-map__overlay)::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -21px;
+  transform: translateX(-50%);
+  border-width: 11px;
+  border-style: solid;
+  border-color: govuk-colour("white") transparent transparent transparent;
+  z-index: 1;
+}
+
+/* Overlay header */
+moj-map::part(app-map__overlay-header) {
+  display: flex;
+  justify-content: flex-end;
+  background-color: govuk-colour("light-grey");
+  padding: 4px 8px;
+  border-bottom: 1px solid $govuk-border-colour;
+}
+
+/* Close button */
+moj-map::part(app-map__overlay-header) .app-map__overlay-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: $govuk-text-colour;
+}
+
+/* Container for any HTML passed in using a template */
+moj-map::part(app-map__overlay-body) {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 16px;
+  padding: 10px;
+}
+
+/* Example of how to access any selectors passed to the map component in the HTML template */
+moj-map::part(app-map__overlay-body) .example-child-selector {
+  display: contents;
+}
+```
+
+> These styles should be added to your app’s main SCSS/CSS bundle — they’ll automatically apply to overlays rendered by the map component.
 
 ---
 

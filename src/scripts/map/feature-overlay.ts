@@ -1,4 +1,5 @@
 import Overlay from 'ol/Overlay'
+import { Coordinate } from 'ol/coordinate'
 
 export default class FeatureOverlay extends Overlay {
   private container: HTMLElement
@@ -6,45 +7,37 @@ export default class FeatureOverlay extends Overlay {
   private closeButton: HTMLButtonElement
   private template: HTMLTemplateElement
 
-  constructor(template: HTMLTemplateElement) {
-    // Create outer container
-    const wrapper = document.createElement('div')
-    wrapper.className = 'app-map__overlay'
+  constructor(template: HTMLTemplateElement, container: HTMLElement) {
+    const header = container.querySelector('.app-map__overlay-header') as HTMLElement
+    const content = container.querySelector('.app-map__overlay-body') as HTMLElement
+    const closeButton = container.querySelector('.app-map__overlay-close') as HTMLButtonElement
 
-    // Create close button
-    const closeBtn = document.createElement('button')
-    closeBtn.className = 'app-map__overlay__close'
-    closeBtn.type = 'button'
-    closeBtn.textContent = '×'
-
-    // Create content area
-    const content = document.createElement('div')
-    content.className = 'app-map__overlay__content'
-
-    // Append everything
-    wrapper.appendChild(closeBtn)
-    wrapper.appendChild(content)
+    // Expose overlay parts to enable styling outside of the component
+    container.setAttribute('part', 'app-map__overlay')
+    content.setAttribute('part', 'app-map__overlay-body')
+    header.setAttribute('part', 'app-map__overlay-header')
 
     super({
-      element: wrapper,
+      element: container,
+      autoPan: {
+        animation: {
+          duration: 250,
+        },
+      },
+      offset: [0, -22],
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -12],
     })
 
-    this.container = wrapper
+    this.container = container
     this.content = content
-    this.closeButton = closeBtn
+    this.closeButton = closeButton
     this.template = template
 
-    // Close handler
-    this.closeButton.addEventListener('click', () => {
-      this.close()
-    })
+    this.closeButton.addEventListener('click', () => this.close())
   }
 
-  showAtCoordinate(coordinate: number[], data: Record<string, unknown>) {
-    // Basic Mustache-like templating: {{key}}
+  showAtCoordinate(coordinate: Coordinate, data: Record<string, unknown>) {
     const rawHtml = this.template.innerHTML
     const populatedHtml = rawHtml.replace(/{{(.*?)}}/g, (_, key) => {
       const value = data[key.trim()]
@@ -54,10 +47,14 @@ export default class FeatureOverlay extends Overlay {
     this.content.innerHTML = populatedHtml
     this.container.hidden = false
     this.setPosition(coordinate)
+
+    this.container.dispatchEvent(new CustomEvent('map:overlay:open', { bubbles: true }))
   }
 
   close() {
     this.container.hidden = true
     this.setPosition(undefined)
+
+    this.container.dispatchEvent(new CustomEvent('map:overlay:close', { bubbles: true }))
   }
 }

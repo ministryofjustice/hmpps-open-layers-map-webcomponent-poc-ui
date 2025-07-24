@@ -47,7 +47,6 @@ export default class LocationPointerInteraction extends PointerInteraction {
       return true
     }
 
-    this.overlay.close()
     return false
   }
 }

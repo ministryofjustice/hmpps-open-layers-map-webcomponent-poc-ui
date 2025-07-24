@@ -49,23 +49,6 @@
 }
 
 .app-map__overlay-body {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 12px;
   font-size: 16px;
   padding: 10px;
-}
-
-.app-map__overlay-row {
-  display: contents;
-}
-
-.app-map__overlay-row strong {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.app-map__overlay-row span {
-  text-align: left;
-  word-break: break-word;
 }
