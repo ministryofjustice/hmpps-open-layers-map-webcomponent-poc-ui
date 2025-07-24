@@ -27,9 +27,9 @@ This component targets **modern browsers only**.
 
 ---
 
-## Getting Started with `<moj-map>`
+# Getting Started with `<moj-map>`
 
-The `moj-map` web component provides an embeddable OpenLayers map with Ordnance Survey tiles and optional GeoJSON overlays.
+The `<moj-map>` web component provides an embeddable [OpenLayers](https://openlayers.org/) map using Ordnance Survey tiles, optional overlays, and a simple HTML templating system.
 
 ---
 
@@ -43,9 +43,26 @@ npm install hmpps-open-layers-map
 
 ---
 
+## Usage in JavaScript
+
+To ensure the component is defined, import the module in your app's JS entry point:
+
+```ts
+import 'hmpps-open-layers-map'
+```
+
+This registers the `<moj-map>` custom element with the browser.
+
+In TypeScript, if your application needs to interact with the map using the OpenLayers API (e.g. to add layers or fit the view), you can optionally import the type:
+
+```ts
+import { MojMap } from 'hmpps-open-layers-map'
+```
+----
+
 ## Using the Component in HTML
 
-Add the following where you want the map to appear:
+Add the component to your page with required attributes:
 
 ```html
 <moj-map
@@ -57,28 +74,21 @@ Add the following where you want the map to appear:
   overlay-template-id="map-overlay-template"
   csp-nonce="your-csp-nonce"
 ></moj-map>
-```
 
+<template id="map-overlay-template">
+  <div>
+    <strong>Speed:</strong> {{speed}} km/h<br />
+    <strong>Timestamp:</strong> {{timestamp}}
+  </div>
+</template>
+```
 ---
 
 ## Using with Nunjucks
 
-You can also render the component via Nunjucks using a macro:
-
-Add 'node_modules/hmpps-open-layers-map/nunjucks' to your nunjucks configuration setup, e.g.
-
-```
-nunjucks.configure([
-  '*your-applications-views*',
-  'node_modules/hmpps-open-layers-map/nunjucks'
-])
-```
-
-### `components/moj-map/template.njk`
+You can also render the component via a Nunjucks macro:
 
 ```njk
-{% from "components/moj-map/macro.njk" import mojMap %}
-
 {{ mojMap({
   accessTokenUrl: '/map/token',
   cspNonce: cspNonce,
@@ -91,7 +101,45 @@ nunjucks.configure([
   templateId: 'map-overlay-template'
 }) }}
 ```
+---
 
+## Accessing the Map API (e.g. to add layers)
+
+Once the map has loaded, it dispatches a `map:ready` event. You can wait for this either using `await` or a callback:
+
+### Await the event
+
+```ts
+const mojMap = document.querySelector('moj-map') as MojMap
+
+await new Promise<void>(resolve => {
+  mojMap.addEventListener('map:ready', () => resolve(), { once: true })
+})
+
+// Now safe to use mojMap.map (the OpenLayers Map instance)
+```
+
+### Or use a callback
+
+```ts
+mojMap.addEventListener('map:ready', (event) => {
+  const mapInstance = event.detail.map
+  // Do something with mapInstance
+})
+```
+---
+
+## Example: Adding a Layer and Fitting to Extent
+
+```ts
+mojMap.map.addLayer(locationsLayer)
+
+mojMap.map.getView().fit(locationsLayer.getSource().getExtent(), {
+  maxZoom: 16,
+  padding: [30, 30, 30, 30],
+  size: mojMap.map.getSize(),
+})
+```
 ---
 
 ## CSS Requirements
