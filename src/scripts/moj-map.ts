@@ -117,16 +117,13 @@ export class MojMap extends HTMLElement {
       }
     }
 
-    // Cypress event
     this.map.on('rendercomplete', () => {
       if (typeof window !== 'undefined' && (window as any).Cypress) {
-        const root = this.getRootNode()
-        if (root instanceof ShadowRoot) {
-          const host = root.host as HTMLElement
-          host.dispatchEvent(new CustomEvent('map:render:complete', {
-            detail: { mapInstance: this.map },
-          }))
-        }
+        this.dispatchEvent(new CustomEvent('map:render:complete', {
+          detail: { mapInstance: this.map },
+          bubbles: true,
+          composed: true,
+        }));
       }
     })
   }

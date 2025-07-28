@@ -1,9 +1,6 @@
 import express, { Request, Response, NextFunction, Router } from 'express'
 import superagent from 'superagent'
 import qs from 'qs'
-import dotenv from 'dotenv'
-
-dotenv.config()
 
 type OSMapsToken = {
   access_token: string
@@ -16,7 +13,7 @@ let cachedToken: OSMapsToken | null = null
 
 function isTokenExpired(token: OSMapsToken): boolean {
   const expiryTime = token.issued_at + parseInt(token.expires_in, 10) * 1000
-  return Date.now() >= expiryTime - 60_000
+  return Date.now() >= expiryTime - 60_000 // refresh 1 min before expiry
 }
 
 async function fetchNewToken(authUrl: string, apiKey: string, apiSecret: string): Promise<OSMapsToken> {
@@ -31,15 +28,15 @@ async function fetchNewToken(authUrl: string, apiKey: string, apiSecret: string)
   return token
 }
 
-export function mojMapMiddleware(): Router {
-  const authUrl = process.env.OS_MAPS_AUTH_URL
-  const apiKey = process.env.OS_MAPS_API_KEY
-  const apiSecret = process.env.OS_MAPS_API_SECRET
+export interface MojMapMiddlewareOptions {
+  authUrl: string
+  apiKey: string
+  apiSecret: string
+}
 
+export function mojMapMiddleware({ authUrl, apiKey, apiSecret }: MojMapMiddlewareOptions): Router {
   if (!authUrl || !apiKey || !apiSecret) {
-    throw new Error(
-      'Missing OS Maps credentials. Ensure OS_MAPS_AUTH_URL, OS_MAPS_API_KEY, and OS_MAPS_API_SECRET are set.'
-    )
+    throw new Error('Missing OS Maps credentials. Ensure authUrl, apiKey, and apiSecret are provided.')
   }
 
   const router = express.Router()

@@ -11,42 +11,69 @@ interface LocationOverlay {
 }
 
 export default class LocationPointerInteraction extends PointerInteraction {
+  private static readonly CLICK_DISTANCE_THRESHOLD = 5
   private overlay: LocationOverlay
+  private downPixel: [number, number] | null = null
 
   constructor(overlay: LocationOverlay) {
-    super()
+    super({
+      handleEvent: (event: MapBrowserEvent<PointerEvent | KeyboardEvent | WheelEvent>) =>
+        this.handlePointerEvent(event),
+    })
+
     this.overlay = overlay
   }
 
-  private getIntersectingLocation(event: MapBrowserEvent<PointerEvent>): Feature<Geometry> | undefined {
+private getIntersectingLocation(
+  event: MapBrowserEvent<PointerEvent | KeyboardEvent | WheelEvent>
+): Feature<Geometry> | undefined {
     const features = event.map.getFeaturesAtPixel(event.pixel)
     return features.find(
       (feature): feature is Feature<Geometry> => feature?.get('type') === 'location-point'
     )
   }
 
-  override handleMoveEvent(event: MapBrowserEvent<PointerEvent>): boolean {
-    const { dragging, map } = event
+ private handlePointerEvent(event: MapBrowserEvent<PointerEvent | KeyboardEvent | WheelEvent>): boolean {
+    switch (event.type) {
+      case 'pointermove': {
+        if (event.dragging) return true
+        const location = this.getIntersectingLocation(event)
+        event.map.getTargetElement().style.cursor = location ? 'pointer' : ''
+        break
+      }
 
-    if (dragging) return true
+      case 'pointerdown': {
+        if (event.pixel.length >= 2) {
+          this.downPixel = [event.pixel[0], event.pixel[1]]
+        }
+        break
+      }
 
-    const location = this.getIntersectingLocation(event)
-    map.getTargetElement().style.cursor = location ? 'pointer' : ''
+      case 'pointerup': {
+        if (!this.downPixel) break
 
-    return true
-  }
+        const dx = event.pixel[0] - this.downPixel[0]
+        const dy = event.pixel[1] - this.downPixel[1]
+        const distance = Math.sqrt(dx * dx + dy * dy)
 
-  override handleDownEvent(event: MapBrowserEvent<PointerEvent>): boolean {
-    const location = this.getIntersectingLocation(event)
-    const geometry = location?.getGeometry()
-    const coordinate = geometry instanceof Point ? geometry.getCoordinates() : undefined
-    const properties = location?.getProperties() ?? {}
+        if (distance < LocationPointerInteraction.CLICK_DISTANCE_THRESHOLD) {
+          const location = this.getIntersectingLocation(event)
+          const geometry = location?.getGeometry()
+          const coordinate = geometry instanceof Point ? geometry.getCoordinates() : undefined
+          const properties = location?.getProperties() ?? {}
 
-    if (location && coordinate) {
-      this.overlay.showAtCoordinate(coordinate, properties)
-      return true
+          if (location && coordinate) {
+            this.overlay.showAtCoordinate(coordinate, properties)
+          } else {
+            this.overlay.close()
+          }
+        }
+
+        this.downPixel = null
+        break
+      }
     }
 
-    return false
+    return true 
   }
 }
