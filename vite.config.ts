@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: (format) => `index.${format}.js`,
       formats: ['es']
     },
-    target: 'es2022',
+    target: 'es2018',
     cssCodeSplit: false,
     assetsDir: 'map-assets',
     rollupOptions: {

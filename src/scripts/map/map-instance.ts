@@ -3,7 +3,7 @@ import { defaults as defaultInteractions } from 'ol/interaction/defaults'
 import BaseLayer from 'ol/layer/Base'
 import Overlay from 'ol/Overlay'
 import { Interaction } from 'ol/interaction'
-import OrdnanceSurveyTileLayer from './tiles'
+import { OrdnanceSurveyTileLayer } from './tiles'
 import DefaultView from './view'
 
 interface MojMapInstanceOptions {

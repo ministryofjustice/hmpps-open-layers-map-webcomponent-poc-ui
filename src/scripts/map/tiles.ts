@@ -8,7 +8,7 @@ import config from './config'
 
 type TileLoadFunction = (tile: OlTile, src: string) => void
 
-const ordnanceSurveyTileLoader = (token: string): TileLoadFunction => {
+export const ordnanceSurveyTileLoader = (token: string): TileLoadFunction => {
   return (tile: OlTile, src: string) => {
     const imageTile = tile as ImageTile
 
@@ -39,7 +39,7 @@ const ordnanceSurveyTileLoader = (token: string): TileLoadFunction => {
   }
 }
 
-class OrdnanceSurveyTileLayer extends TileLayer<XYZ> {
+export class OrdnanceSurveyTileLayer extends TileLayer<XYZ> {
   constructor(tileUrl: string, token: string) {
     super({
       source: new XYZ({
@@ -51,5 +51,3 @@ class OrdnanceSurveyTileLayer extends TileLayer<XYZ> {
     })
   }
 }
-
-export default OrdnanceSurveyTileLayer
