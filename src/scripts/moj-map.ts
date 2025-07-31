@@ -1,11 +1,12 @@
+// moj-map.ts
 import Map from 'ol/Map'
 import BaseLayer from 'ol/layer/Base'
-import { OrdnanceSurveyTileLayer, ordnanceSurveyTileLoader } from './map/tiles'
+import { OrdnanceSurveyTileLayer } from './map/tiles'
 import LocationPointerInteraction from './map/location-pointer-interaction'
 import MojMapInstance from './map/map-instance'
 import FeatureOverlay from './map/feature-overlay'
+import { startTokenRefresh, fetchAccessToken } from './map/token-refresh'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
-import { startTokenRefresh, fetchAccessToken } from './helpers/map'
 
 import styles from '../styles/moj-map.raw.css?raw'
 
@@ -47,7 +48,6 @@ export class MojMap extends HTMLElement {
     this.stopTokenRefresh?.()
   }
 
-  // Access geoJSON points object by attribute e.g. mojMap.points
   public get points(): any | undefined {
     const points = this.getAttribute('points')
     if (!points) return []
@@ -59,7 +59,6 @@ export class MojMap extends HTMLElement {
     }
   }
 
-  // Access geoJSON lines object by attribute e.g. mojMap.lines
   public get lines(): any | undefined {
     const lines = this.getAttribute('lines')
     if (!lines) return []
@@ -91,7 +90,6 @@ export class MojMap extends HTMLElement {
     let accessToken = ''
     let expiresIn = 0
 
-    // Fetch OS Maps access token (if token URL is provided)
     try {
       if (options.tokenUrl.toLowerCase() !== 'none') {
         const tokenResponse = await fetchAccessToken(options.tokenUrl)
@@ -102,11 +100,9 @@ export class MojMap extends HTMLElement {
       console.error('Failed to retrieve access token:', err)
     }
 
-    // Create the main tile layer using the current token
     this.tileLayer = new OrdnanceSurveyTileLayer(options.tileUrl, accessToken)
     const layers: BaseLayer[] = [this.tileLayer]
 
-    // Create and initialize the map instance
     this.map = new MojMapInstance({
       target: this.shadow.querySelector('#map') as HTMLElement,
       osMapsTileUrl: options.tileUrl,
@@ -114,22 +110,14 @@ export class MojMap extends HTMLElement {
       layers,
     })
 
-    // Start token refresh loop (updates tile loader with fresh token)
     if (accessToken !== '' && expiresIn !== 0) {
       this.stopTokenRefresh = startTokenRefresh({
         tokenUrl: options.tokenUrl,
         initialExpiresIn: expiresIn,
-        onTokenUpdate: (newToken: string) => {
-          const source = this.tileLayer.getSource()
-          if (source) {
-            source.setTileLoadFunction(ordnanceSurveyTileLoader(newToken))
-            source.refresh()
-          }
-        },
+        onTokenUpdate: (newToken: string) => this.tileLayer.updateToken(newToken),
       })
     }
 
-    // Add overlays internally if enabled
     if (options.usesInternalOverlays && options.overlayTemplateId) {
       const template = document.getElementById(options.overlayTemplateId)
       const overlayEl = this.shadow.querySelector('.app-map__overlay')
@@ -145,7 +133,6 @@ export class MojMap extends HTMLElement {
       }
     }
 
-    // Fire custom event when the map is ready (for Cypress testing support)
     this.map.on('rendercomplete', () => {
       if (typeof window !== 'undefined' && (window as any).Cypress) {
         this.dispatchEvent(new CustomEvent('map:render:complete', {

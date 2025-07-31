@@ -1,4 +1,4 @@
-// OS map tokens expire after a period so refresh the token a minute before expiry
+// helpers/map.ts
 export function startTokenRefresh({
   tokenUrl,
   initialExpiresIn,
@@ -10,8 +10,8 @@ export function startTokenRefresh({
 }): () => void {
   let timer: ReturnType<typeof setTimeout>
   let detectIdleInterval: ReturnType<typeof setInterval>
-  const CHECK_INTERVAL = 30_000 
-  const MAX_DRIFT = 60_000 // If system clock jumps more than 1 minute, trigger early refresh
+  const CHECK_INTERVAL = 30_000
+  const MAX_DRIFT = 60_000
 
   let lastChecked = Date.now()
 
@@ -28,11 +28,9 @@ export function startTokenRefresh({
     }
   }
 
-  // Schedule first refresh from initial token
   const initialDelay = Math.max((initialExpiresIn - 60) * 1000, 10_000)
   timer = setTimeout(scheduleRefresh, initialDelay)
 
-  // Detect if laptop was asleep or tab suspended or another reason for JS timer drift
   detectIdleInterval = setInterval(() => {
     const now = Date.now()
     const drift = now - lastChecked
@@ -50,7 +48,6 @@ export function startTokenRefresh({
   }
 }
 
-// Fetch a token and its expiry from the token service.
 export async function fetchAccessToken(url: string): Promise<{ token: string, expiresIn: number }> {
   const response = await fetch(url)
   if (!response.ok) {

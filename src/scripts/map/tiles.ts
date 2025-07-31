@@ -1,3 +1,4 @@
+// map/tiles.ts
 import axios from 'axios'
 import TileLayer from 'ol/layer/Tile'
 import TileState from 'ol/TileState'
@@ -49,5 +50,13 @@ export class OrdnanceSurveyTileLayer extends TileLayer<XYZ> {
         tileLoadFunction: ordnanceSurveyTileLoader(token),
       }),
     })
+  }
+
+  public updateToken(newToken: string) {
+    const source = this.getSource()
+    if (source) {
+      source.setTileLoadFunction(ordnanceSurveyTileLoader(newToken))
+      source.refresh()
+    }
   }
 }
