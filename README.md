@@ -88,6 +88,15 @@ Add the component to your page with required attributes:
 
 You can also render the component via a Nunjucks macro:
 
+Add 'node_modules/hmpps-open-layers-map/nunjucks' to your nunjucks configuration setup, e.g.
+
+```
+nunjucks.configure([
+  '*your-applications-views*',
+  'node_modules/hmpps-open-layers-map/nunjucks'
+])
+```
+
 ```njk
 {{ mojMap({
   accessTokenUrl: '/map/token',
