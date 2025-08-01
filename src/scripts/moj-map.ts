@@ -81,7 +81,6 @@ export class MojMap extends HTMLElement {
       points: this.getAttribute('points') || undefined,
       lines: this.getAttribute('lines') || undefined,
       usesInternalOverlays: this.hasAttribute('uses-internal-overlays'),
-      overlayTemplateId: this.getAttribute('overlay-template-id') || undefined,
     }
   }
 
@@ -118,18 +117,17 @@ export class MojMap extends HTMLElement {
       })
     }
 
-    if (options.usesInternalOverlays && options.overlayTemplateId) {
-      const template = document.getElementById(options.overlayTemplateId)
+    if (options.usesInternalOverlays) {
       const overlayEl = this.shadow.querySelector('.app-map__overlay')
 
-      if (template instanceof HTMLTemplateElement && overlayEl instanceof HTMLElement) {
-        this.featureOverlay = new FeatureOverlay(template, overlayEl)
+      if (overlayEl instanceof HTMLElement) {
+        this.featureOverlay = new FeatureOverlay(overlayEl)
         this.map.addOverlay(this.featureOverlay)
 
         const pointerInteraction = new LocationPointerInteraction(this.featureOverlay)
         this.map.addInteraction(pointerInteraction)
       } else {
-        console.warn('[moj-map] Internal overlays enabled but template or overlay element not found.')
+        console.warn('[moj-map] Internal overlays enabled but overlay container element not found.')
       }
     }
 

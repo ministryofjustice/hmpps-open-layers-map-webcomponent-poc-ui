@@ -5,14 +5,12 @@ export default class FeatureOverlay extends Overlay {
   private container: HTMLElement
   private content: HTMLElement
   private closeButton: HTMLButtonElement
-  private template: HTMLTemplateElement
 
-  constructor(template: HTMLTemplateElement, container: HTMLElement) {
+  constructor(container: HTMLElement) {
     const header = container.querySelector('.app-map__overlay-header') as HTMLElement
     const content = container.querySelector('.app-map__overlay-body') as HTMLElement
     const closeButton = container.querySelector('.app-map__overlay-close') as HTMLButtonElement
 
-    // Expose overlay parts to enable styling outside of the component
     container.setAttribute('part', 'app-map__overlay')
     content.setAttribute('part', 'app-map__overlay-body')
     header.setAttribute('part', 'app-map__overlay-header')
@@ -32,13 +30,22 @@ export default class FeatureOverlay extends Overlay {
     this.container = container
     this.content = content
     this.closeButton = closeButton
-    this.template = template
 
     this.closeButton.addEventListener('click', () => this.close())
   }
 
   showAtCoordinate(coordinate: Coordinate, data: Record<string, unknown>) {
-    const rawHtml = this.template.innerHTML
+    const templateId = data.overlayTemplateId
+    const template = typeof templateId === 'string'
+      ? document.getElementById(templateId)
+      : null
+
+    if (!(template instanceof HTMLTemplateElement)) {
+      console.warn(`[FeatureOverlay] No valid template found for overlayTemplateId="${templateId}"`)
+      return
+    }
+
+    const rawHtml = template.innerHTML
     const populatedHtml = rawHtml.replace(/{{(.*?)}}/g, (_, key) => {
       const value = data[key.trim()]
       return value !== undefined ? String(value) : ''

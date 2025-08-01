@@ -71,7 +71,6 @@ Add the component to your page with required attributes:
   points='[...]'
   lines='[...]'
   uses-internal-overlays
-  overlay-template-id="map-overlay-template"
   csp-nonce="your-csp-nonce"
 ></moj-map>
 
@@ -106,8 +105,7 @@ nunjucks.configure([
     points: points,
     lines: lines
   },
-  usesInternalOverlays: true,
-  templateId: 'map-overlay-template'
+  usesInternalOverlays: true
 }) }}
 ```
 ---
@@ -166,7 +164,6 @@ The map must be placed inside a container that has a defined height. If the cont
 | `points`                 | (Optional) JSON array of point features.                        |
 | `lines`                  | (Optional) JSON array of line features.                         |
 | `uses-internal-overlays`| (Optional) If present, enables built-in overlay and pointer interaction.     |
-| `overlay-template-id`    | (Optional) ID of a `<template>` element in the DOM used for overlay content.|
 | `csp-nonce`              | (Optional) Nonce value to allow inline styles under CSP.                    |
 
 > ⚠️ `uses-internal-overlays` is a boolean attribute: if it exists, internal overlays will be used. Omit entirely if you want to manage overlays yourself from outside the component.
@@ -176,9 +173,19 @@ The map must be placed inside a container that has a defined height. If the cont
 
 ## Feature Overlay Templating
 
-A common usage of OpenLayers maps is to allow the user to select a map feature which will show an anchored overlay containing data associated with that feature.
+A common usage of OpenLayers maps is to allow the user to select a map feature, triggering an anchored overlay that displays feature-specific data.
 
-To enable overlays add a HTML template with an ID and pass the ID to the component to render using the **overlay-template-id** attribute:
+### How it works
+
+To enable overlays:
+
+1. **Each feature** in your `points` array must include a `overlayTemplateId` property.
+2. **The page view** must contain a matching `<template>` element with that ID.
+3. The map component will show the overlay when the user clicks on a matching feature.
+
+---
+
+### Example usage
 
 ```html
 <moj-map
@@ -187,30 +194,29 @@ To enable overlays add a HTML template with an ID and pass the ID to the compone
   points='[...]'
   lines='[...]'
   uses-internal-overlays
-  overlay-template-id="map-overlay-template"
   csp-nonce="your-csp-nonce"
 ></moj-map>
 
-<template id="map-overlay-template">
+<template id="overlay-template-location-point">
   <div>
-    <strong>Speed:</strong> {{speed}} km/h<br />
-    <strong>Timestamp:</strong> {{recordedAt}}
+    <strong>Speed:</strong> {{ displaySpeed }}<br />
+    <strong>Timestamp:</strong> {{ displayTimestamp }}
   </div>
 </template>
 ```
 
-- The template will be used when a feature is clicked.
-- Tokens like `{{speed}}` are dynamically replaced with matching feature properties.
-- These feature properties are passed in the `points` array as plain objects. Each object should include the keys (e.g. `speed`, `timestamp`, etc.) that your overlay template expects.
-
 > Example point feature in JSON:
 > ```json
 > {
->   "type": "location-point",
->   "speed": 12.5,
->   "timestamp": "2025-07-23T12:00:00Z"
+>   "overlayTemplateId": "overlay-template-location-point",
+>   "displaySpeed": "12.5 km/h",
+>   "displayTimestamp": "2025-07-23 12:00:00"
 > }
 > ```
+
+- The `overlayTemplateId` determines which `<template>` to use.
+- The values inside `{{ ... }}` in the template are replaced with top-level keys from the feature object.
+- Only features with a valid `overlayTemplateId` and a matching template in the DOM will trigger overlay behavior.
 
 ---
 
