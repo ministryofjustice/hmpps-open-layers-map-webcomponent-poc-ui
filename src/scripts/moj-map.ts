@@ -1,18 +1,20 @@
-// moj-map.ts
 import Map from 'ol/Map'
-import BaseLayer from 'ol/layer/Base'
-import { OrdnanceSurveyTileLayer } from './map/tiles'
+import { applyStyle } from 'ol-mapbox-style'
+import { OrdnanceSurveyImageTileLayer, OrdnanceSurveyVectorTileLayer, isImageTileLayer, resolveTileType } from './map/tiles'
 import LocationPointerInteraction from './map/location-pointer-interaction'
 import MojMapInstance from './map/map-instance'
 import FeatureOverlay from './map/feature-overlay'
 import { startTokenRefresh, fetchAccessToken } from './map/token-refresh'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
+import config from '../scripts/map/config'
 
 import styles from '../styles/moj-map.raw.css?raw'
 
+type TileType = 'vector' | 'raster'
+
 type MojMapOptions = {
-  tileUrl: string
   tokenUrl: string
+  tileType: TileType
   points?: string
   lines?: string
   usesInternalOverlays: boolean
@@ -20,11 +22,9 @@ type MojMapOptions = {
 }
 
 export class MojMap extends HTMLElement {
-  private static readonly DEFAULT_TILE_URL = 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}'
-  private static readonly DEFAULT_TOKEN_URL = '/map/token'
   private mapNonce: string | null = null
   private map!: Map
-  private tileLayer!: OrdnanceSurveyTileLayer
+  private imageTileLayer?: OrdnanceSurveyImageTileLayer
   private stopTokenRefresh: (() => void) | null = null
   private shadow: ShadowRoot
   private featureOverlay?: FeatureOverlay
@@ -75,9 +75,19 @@ export class MojMap extends HTMLElement {
   }
 
   private parseAttributes(): MojMapOptions {
+    let tileType = resolveTileType(this.getAttribute('tile-type'))
+    const tokenUrl = this.getAttribute('access-token-url') || config.tiles.defaultTokenUrl
+
+    if (tileType === 'vector' && !this.hasAttribute('api-key')) {
+      console.warn(
+        `[moj-map] tile-type="vector" was requested (or auto-detected) but no api-key provided. Falling back to raster tiles.`
+      )
+      tileType = 'raster'
+    }
+
     return {
-      tileUrl: this.getAttribute('tile-url') || MojMap.DEFAULT_TILE_URL,
-      tokenUrl: this.getAttribute('access-token-url') || MojMap.DEFAULT_TOKEN_URL,
+      tileType,
+      tokenUrl,
       points: this.getAttribute('points') || undefined,
       lines: this.getAttribute('lines') || undefined,
       usesInternalOverlays: this.hasAttribute('uses-internal-overlays'),
@@ -99,21 +109,45 @@ export class MojMap extends HTMLElement {
       console.error('Failed to retrieve access token:', err)
     }
 
-    this.tileLayer = new OrdnanceSurveyTileLayer(options.tileUrl, accessToken)
-    const layers: BaseLayer[] = [this.tileLayer]
-
     this.map = new MojMapInstance({
       target: this.shadow.querySelector('#map') as HTMLElement,
-      osMapsTileUrl: options.tileUrl,
-      osMapsAccessToken: accessToken,
-      layers,
+      layers: [],
     })
 
-    if (accessToken !== '' && expiresIn !== 0) {
+    if (options.tileType === 'vector') {
+      const apiKey = this.getAttribute('api-key')!
+      const vectorLayer = new OrdnanceSurveyVectorTileLayer()
+
+      try {
+        await vectorLayer.applyVectorStyle(apiKey)
+        this.map.addLayer(vectorLayer)
+      } catch (err) {
+        console.warn('[moj-map] Failed to initialize vector layer. Falling back to raster.', err)
+        const rasterLayer = new OrdnanceSurveyImageTileLayer(config.tiles.urls.raster, accessToken)
+        this.map.addLayer(rasterLayer)
+        this.imageTileLayer = rasterLayer
+        options.tileType = 'raster'
+      }
+    }
+
+    if (options.tileType === 'raster' && !this.imageTileLayer) {
+      const rasterLayer = new OrdnanceSurveyImageTileLayer(config.tiles.urls.raster, accessToken)
+      this.map.addLayer(rasterLayer)
+      this.imageTileLayer = rasterLayer
+    }
+
+    if (
+      accessToken !== '' &&
+      expiresIn !== 0 &&
+      this.imageTileLayer &&
+      isImageTileLayer(this.imageTileLayer)
+    ) {
       this.stopTokenRefresh = startTokenRefresh({
         tokenUrl: options.tokenUrl,
         initialExpiresIn: expiresIn,
-        onTokenUpdate: (newToken: string) => this.tileLayer.updateToken(newToken),
+        onTokenUpdate: (newToken: string) => {
+          this.imageTileLayer!.updateToken(newToken)
+        }
       })
     }
 

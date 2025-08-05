@@ -21,6 +21,11 @@ const config = {
       min: 7,
       max: 20,
     },
+    urls: {
+      vectorStyle: 'https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857&key=',
+      raster: 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}',
+    },
+    defaultTokenUrl: '/map/token',
   },
 }
 

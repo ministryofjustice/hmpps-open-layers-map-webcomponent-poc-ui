@@ -1,12 +1,12 @@
 <moj-map
+  api-key="{{ params.apiKey }}"
   access-token-url="{{ params.accessTokenUrl | default('/map/token') }}"
-  tile-url="{{ params.tileUrl | default('/map/tiles') }}"
   points='{{ params.geoData.points | dump(false) | safe }}'
   lines='{{ params.geoData.lines | dump(false) | safe }}'
   {% if params.usesInternalOverlays %}
     uses-internal-overlays
   {% endif %}
-  overlay-template-id="{{ params.templateId | default('map-overlay-template') }}"
   csp-nonce="{{ params.cspNonce }}"
 ></moj-map>
+
 
