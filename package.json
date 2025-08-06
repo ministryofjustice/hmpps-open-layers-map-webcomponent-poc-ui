@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.4.12",
+  "version": "0.4.19",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "vite",
     "build:css": "sass --no-source-map --quiet-deps --load-path=node_modules src/styles/moj-map.scss src/styles/moj-map.raw.css",
-    "build": "npm run build:css && vite build && tsc",
+    "build": "npm run build:css && BUILD=lib vite build && tsc",
     "preview": "vite preview"
   },
   "keywords": [

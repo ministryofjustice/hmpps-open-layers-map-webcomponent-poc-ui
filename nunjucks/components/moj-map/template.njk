@@ -1,12 +1,20 @@
 <moj-map
   api-key="{{ params.apiKey }}"
-  access-token-url="{{ params.accessTokenUrl | default('/map/token') }}"
+  access-token-url="{{ params.accessTokenUrl }}"
   points='{{ params.geoData.points | dump(false) | safe }}'
   lines='{{ params.geoData.lines | dump(false) | safe }}'
   {% if params.usesInternalOverlays %}
     uses-internal-overlays
   {% endif %}
   csp-nonce="{{ params.cspNonce }}"
+
+  {% if params.vectorUrl %}
+    vector-url="{{ params.vectorUrl }}"
+  {% endif %}
+  {% if params.tileUrl %}
+    tile-url="{{ params.tileUrl }}"
+  {% endif %}
 ></moj-map>
+
 
 

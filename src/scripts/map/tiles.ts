@@ -2,8 +2,6 @@ import BaseLayer from 'ol/layer/Base'
 import TileLayer from 'ol/layer/Tile'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import { XYZ } from 'ol/source'
-import VectorTileSource from 'ol/source/VectorTile'
-import MVT from 'ol/format/MVT'
 import TileState from 'ol/TileState'
 import { Tile as OlTile } from 'ol'
 import ImageTile from 'ol/ImageTile'
@@ -75,8 +73,8 @@ export class OrdnanceSurveyVectorTileLayer extends VectorTileLayer {
     })
   }
 
-  async applyVectorStyle(apiKey: string): Promise<void> {
-    const styleUrl = `${config.tiles.urls.vectorStyle}${apiKey}`
+  async applyVectorStyle(apiKey: string, baseUrl: string): Promise<void> {
+    const styleUrl = `${baseUrl.replace(/\/$/, '')}/resources/styles?srs=3857&key=${apiKey}`
     return applyStyle(this, styleUrl)
   }
 }

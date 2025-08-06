@@ -1,9 +1,12 @@
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
+const isLibMode = process.env.BUILD === 'lib'
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
-  build: {
+  root: isLibMode ? undefined : '.',
+  build: isLibMode
+    ? {
     outDir: 'dist',
     lib: {
       entry: 'src/index.ts',
@@ -25,7 +28,11 @@ export default defineConfig({
           ol: 'ol'
         }
       }
-    }
+    }      
+  }
+    : undefined,
+  server: {
+    open: true
   }
 })
 

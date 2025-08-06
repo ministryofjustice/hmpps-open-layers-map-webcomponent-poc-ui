@@ -1,5 +1,4 @@
 import Map from 'ol/Map'
-import { applyStyle } from 'ol-mapbox-style'
 import { OrdnanceSurveyImageTileLayer, OrdnanceSurveyVectorTileLayer, isImageTileLayer, resolveTileType } from './map/tiles'
 import LocationPointerInteraction from './map/location-pointer-interaction'
 import MojMapInstance from './map/map-instance'
@@ -19,6 +18,8 @@ type MojMapOptions = {
   lines?: string
   usesInternalOverlays: boolean
   overlayTemplateId?: string
+  tileUrl?: string
+  vectorUrl?: string
 }
 
 export class MojMap extends HTMLElement {
@@ -76,14 +77,20 @@ export class MojMap extends HTMLElement {
 
   private parseAttributes(): MojMapOptions {
     let tileType = resolveTileType(this.getAttribute('tile-type'))
-    const tokenUrl = this.getAttribute('access-token-url') || config.tiles.defaultTokenUrl
+    const apiKey = this.getAttribute('api-key')
+    const userTokenUrl = this.getAttribute('access-token-url')
+    const tileUrl = this.getAttribute('tile-url') || config.tiles.urls.tileUrl
+    const vectorUrl = this.getAttribute('vector-url') || config.tiles.urls.vectorUrl
 
-    if (tileType === 'vector' && !this.hasAttribute('api-key')) {
-      console.warn(
-        `[moj-map] tile-type="vector" was requested (or auto-detected) but no api-key provided. Falling back to raster tiles.`
-      )
+    if (tileType === 'vector' && !apiKey) {
+      console.warn('[moj-map] tile-type="vector" was requested but no api-key provided. Falling back to raster.')
       tileType = 'raster'
     }
+
+    const tokenUrl =
+      tileType === 'raster'
+        ? userTokenUrl || config.tiles.defaultTokenUrl
+        : userTokenUrl || 'none'
 
     return {
       tileType,
@@ -91,6 +98,9 @@ export class MojMap extends HTMLElement {
       points: this.getAttribute('points') || undefined,
       lines: this.getAttribute('lines') || undefined,
       usesInternalOverlays: this.hasAttribute('uses-internal-overlays'),
+      overlayTemplateId: this.getAttribute('overlay-template-id') || undefined,
+      tileUrl,
+      vectorUrl,
     }
   }
 
@@ -119,11 +129,11 @@ export class MojMap extends HTMLElement {
       const vectorLayer = new OrdnanceSurveyVectorTileLayer()
 
       try {
-        await vectorLayer.applyVectorStyle(apiKey)
+        await vectorLayer.applyVectorStyle(apiKey, options.vectorUrl!)
         this.map.addLayer(vectorLayer)
       } catch (err) {
         console.warn('[moj-map] Failed to initialize vector layer. Falling back to raster.', err)
-        const rasterLayer = new OrdnanceSurveyImageTileLayer(config.tiles.urls.raster, accessToken)
+        const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
         this.map.addLayer(rasterLayer)
         this.imageTileLayer = rasterLayer
         options.tileType = 'raster'
@@ -131,7 +141,7 @@ export class MojMap extends HTMLElement {
     }
 
     if (options.tileType === 'raster' && !this.imageTileLayer) {
-      const rasterLayer = new OrdnanceSurveyImageTileLayer(config.tiles.urls.raster, accessToken)
+      const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
       this.map.addLayer(rasterLayer)
       this.imageTileLayer = rasterLayer
     }
