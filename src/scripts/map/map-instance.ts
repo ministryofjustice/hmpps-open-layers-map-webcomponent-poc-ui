@@ -3,6 +3,8 @@ import { defaults as defaultInteractions } from 'ol/interaction/defaults'
 import BaseLayer from 'ol/layer/Base'
 import Overlay from 'ol/Overlay'
 import { Interaction } from 'ol/interaction'
+import { defaults as defaultControls } from 'ol/control';
+import Rotate from 'ol/control/Rotate';
 import DefaultView from './view'
 
 interface MojMapInstanceOptions {
@@ -21,6 +23,11 @@ export default class MojMapInstance extends Map {
       layers,
       overlays: options.overlays || [],
       interactions: defaultInteractions().extend(options.interactions || []),
+        controls: defaultControls({ rotate: false }).extend([
+          new Rotate({
+            autoHide: false,
+          }),
+        ]),
       view: new DefaultView(),
     })
   }
