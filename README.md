@@ -1,4 +1,3 @@
-
 # hmpps-open-layers-map-webcomponent-poc-ui
 
 A native Web Component for rendering OpenLayers maps.
@@ -7,13 +6,13 @@ A native Web Component for rendering OpenLayers maps.
 
 ## Browser Support
 
-| Browser   | Support |
-|-----------|---------|
-| Chrome    | ![Chrome](https://img.shields.io/badge/support-yes-brightgreen) |
-| Firefox   | ![Firefox](https://img.shields.io/badge/support-yes-brightgreen) |
-| Safari    | ![Safari](https://img.shields.io/badge/support-yes-brightgreen) |
-| Edge (Chromium) | ![Edge Chromium](https://img.shields.io/badge/support-yes-brightgreen) |
-| IE11      | ![IE11](https://img.shields.io/badge/support-no-red) |
+| Browser         | Support |
+| --------------- | ------- |
+| Chrome          |         |
+| Firefox         |         |
+| Safari          |         |
+| Edge (Chromium) |         |
+| IE11            |         |
 
 ---
 
@@ -29,7 +28,7 @@ This component targets **modern browsers only**.
 
 # Getting Started with `<moj-map>`
 
-The `<moj-map>` web component provides an embeddable [OpenLayers](https://openlayers.org/) map using Ordnance Survey tiles, optional overlays, and a simple HTML templating system.
+The `<moj-map>` web component provides an embeddable [OpenLayers](https://openlayers.org/) map using Ordnance Survey vector tiles by default, with optional overlays and a simple HTML templating system.
 
 ---
 
@@ -43,7 +42,7 @@ npm install hmpps-open-layers-map
 
 ---
 
-## Usage in JavaScript
+## Minimum Usage in JavaScript
 
 To ensure the component is defined, import the module in your app's JS entry point:
 
@@ -58,38 +57,28 @@ In TypeScript, if your application needs to interact with the map using the Open
 ```ts
 import { MojMap } from 'hmpps-open-layers-map'
 ```
-----
 
-## Using the Component in HTML
+---
 
-Add the component to your page with required attributes:
+## Minimum Usage in HTML
 
 ```html
 <moj-map
-  tile-url="https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}"
-  access-token-url="/map/token"
   points='[...]'
   lines='[...]'
-  uses-internal-overlays
   csp-nonce="your-csp-nonce"
 ></moj-map>
-
-<template id="map-overlay-template">
-  <div>
-    <strong>Speed:</strong> {{speed}} km/h<br />
-    <strong>Timestamp:</strong> {{timestamp}}
-  </div>
-</template>
 ```
+
 ---
 
 ## Using with Nunjucks
 
 You can also render the component via a Nunjucks macro:
 
-Add 'node_modules/hmpps-open-layers-map/nunjucks' to your nunjucks configuration setup, e.g.
+Add 'node\_modules/hmpps-open-layers-map/nunjucks' to your nunjucks configuration setup, e.g.
 
-```
+```js
 nunjucks.configure([
   '*your-applications-views*',
   'node_modules/hmpps-open-layers-map/nunjucks'
@@ -98,16 +87,97 @@ nunjucks.configure([
 
 ```njk
 {{ mojMap({
-  accessTokenUrl: '/map/token',
-  cspNonce: cspNonce,
-  tileUrl: 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}',
+  cspNonce: params.cspNonce,
   geoData: {
-    points: points,
-    lines: lines
-  },
-  usesInternalOverlays: true
+    points: params.geoData.points,
+    lines: params.geoData.lines
+  }
 }) }}
 ```
+
+---
+
+## Component Attributes
+
+| Attribute                | Description                                                                |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `points`                 | (Optional) JSON array of point features.                                   |
+| `lines`                  | (Optional) JSON array of line features.                                    |
+| `uses-internal-overlays` | (Optional) If present, enables built-in overlay and pointer interaction.   |
+| `csp-nonce`              | (Optional) Nonce value to allow inline styles under CSP.                   |
+| `tile-type`              | (Optional) Set to `raster` to force raster mode instead of default vector. |
+| `tile-url`               | (Optional) Custom raster tile URL. Useful for testing or stubbing tiles.   |
+| `vector-url`             | (Optional) Custom vector tile URL. Useful for testing or stubbing tiles.   |
+
+> ⚠️ `uses-internal-overlays` is a boolean attribute: if it exists, internal overlays will be used. Omit entirely if you want to manage overlays yourself from outside the component.
+
+---
+
+## Optional: Using Raster Tiles or Supporting Fallback
+
+By default, this component uses **Ordnance Survey vector tiles**. However, if you need to:
+
+- **Fallback to image tiles**, or
+- **Force raster mode** for browser compatibility,
+
+you will need to configure your application to retrieve an access token from the OS Maps API.
+
+This requires middleware to support the `access-token-url` mechanism:
+
+```ts
+app.get('/map/token', async (_req, res) => {
+  const response = await got.post('https://api.os.uk/oauth2/token/v1', {
+    form: {
+      grant_type: 'client_credentials',
+      client_id: process.env.OS_CLIENT_ID,
+      client_secret: process.env.OS_CLIENT_SECRET,
+    },
+    responseType: 'json',
+  })
+
+  res.json({ access_token: response.body.access_token })
+})
+```
+
+Then use the `access-token-url`, `tile-type="raster"`, `tile-url`, and `vector-url` attributes as needed.
+
+You can also pass stubbed URLs for local development or testing purposes:
+
+```env
+OS_MAPS_TILE_URL=http://localhost:9091/map-tiles/Road_3857/{z}/{x}/{y}
+OS_MAPS_VECTOR_URL=http://localhost:9091/maps/vector/v1/vts
+```
+
+---
+
+## CSP Policy (Content Security Policy)
+
+To use this component safely in production, especially when enabling inline styles or scripts, your CSP should allow the relevant domains and use a nonce.
+
+If you're using the HMPPS Typescript Template, add the following in your server config at /server/middleware
+/setUpWebSecurity.ts:
+
+```ts
+router.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: ["'self'", 'api.os.uk'],
+        imgSrc: ["'self'", 'api.os.uk', 'data:', 'blob:'],
+        // @ts-expect-error mismatch response
+        scriptSrc: ["'self'", (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
+        // @ts-expect-error mismatch response
+        styleSrc: ["'self'", 'cdn.jsdelivr.net', (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
+        fontSrc: ["'self'", 'cdn.jsdelivr.net'],
+        formAction: [`'self' ${config.apis.hmppsAuth.externalUrl}`],
+      },
+    },
+  })
+)
+```
+
 ---
 
 ## Accessing the Map API (e.g. to add layers)
@@ -134,6 +204,7 @@ mojMap.addEventListener('map:ready', (event) => {
   // Do something with mapInstance
 })
 ```
+
 ---
 
 ## Example: Adding a Layer and Fitting to Extent
@@ -147,27 +218,12 @@ mojMap.map.getView().fit(locationsLayer.getSource().getExtent(), {
   size: mojMap.map.getSize(),
 })
 ```
+
 ---
 
 ## CSS Requirements
 
 The map must be placed inside a container that has a defined height. If the container has `height: 0` or is not sized explicitly or implicitly, OpenLayers will not render correctly.
-
----
-
-## Component Attributes
-
-| Attribute                | Description                                                                 |
-|--------------------------|-----------------------------------------------------------------------------|
-| `tile-url`               | URL of the tile server used for the basemap (e.g. Ordnance Survey Raster). |
-| `access-token-url`       | (Optional) Endpoint to fetch an access token. Set to `'none'` to skip.      |
-| `points`                 | (Optional) JSON array of point features.                        |
-| `lines`                  | (Optional) JSON array of line features.                         |
-| `uses-internal-overlays`| (Optional) If present, enables built-in overlay and pointer interaction.     |
-| `csp-nonce`              | (Optional) Nonce value to allow inline styles under CSP.                    |
-
-> ⚠️ `uses-internal-overlays` is a boolean attribute: if it exists, internal overlays will be used. Omit entirely if you want to manage overlays yourself from outside the component.
-
 
 ---
 
@@ -183,14 +239,10 @@ To enable overlays:
 2. **The page view** must contain a matching `<template>` element with that ID.
 3. The map component will show the overlay when the user clicks on a matching feature.
 
----
-
 ### Example usage
 
 ```html
 <moj-map
-  tile-url="https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}"
-  access-token-url="/map/token"
   points='[...]'
   lines='[...]'
   uses-internal-overlays
@@ -206,6 +258,7 @@ To enable overlays:
 ```
 
 > Example point feature in JSON:
+>
 > ```json
 > {
 >   "overlayTemplateId": "overlay-template-location-point",
@@ -235,77 +288,22 @@ To enable overlays:
 
 ---
 
-### Styling the Map Overlay (from your app)
+## Styling the Map Overlay (from your app)
 
 You can customise the map overlay using regular CSS or Sass. The `<moj-map>` web component exposes parts of the overlay using `::part`, which allows you to style them from outside the Shadow DOM.
 
-#### Example SCSS
+### Example SCSS
 
 ```scss
-/* Overlay container */
-moj-map::part(app-map__overlay) {
-  position: relative;
-  background-color: govuk-colour("white");
-  border: 1px solid govuk-colour("black");
-  min-width: 180px;
-  z-index: 1;
-  box-shadow: 0 2px 4px rgba(govuk-colour("black"), 0.1);
-}
-
-/* Arrow border */
-moj-map::part(app-map__overlay)::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -25px;
-  transform: translateX(-50%);
-  border-width: 12px;
-  border-style: solid;
-  border-color: govuk-colour("black") transparent transparent transparent;
-  z-index: -1;
-}
-
-/* Arrow fill */
-moj-map::part(app-map__overlay)::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -21px;
-  transform: translateX(-50%);
-  border-width: 11px;
-  border-style: solid;
-  border-color: govuk-colour("white") transparent transparent transparent;
-  z-index: 1;
-}
-
-/* Overlay header */
-moj-map::part(app-map__overlay-header) {
-  display: flex;
-  justify-content: flex-end;
-  background-color: govuk-colour("light-grey");
-  padding: 4px 8px;
-  border-bottom: 1px solid $govuk-border-colour;
-}
-
-/* Close button */
-moj-map::part(app-map__overlay-header) .app-map__overlay-close {
-  background: none;
-  border: none;
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-  color: $govuk-text-colour;
-}
-
-/* Container for any HTML passed in using a template */
-moj-map::part(app-map__overlay-body) {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 12px;
-  font-size: 16px;
-  padding: 10px;
-}
+moj-map::part(app-map__overlay) { ... }
+moj-map::part(app-map__overlay)::before { ... }
+moj-map::part(app-map__overlay)::after { ... }
+moj-map::part(app-map__overlay-header) { ... }
+moj-map::part(app-map__overlay-header) .app-map__overlay-close { ... }
+moj-map::part(app-map__overlay-body) { ... }
 ```
+
+---
 
 ## Styling Overlay Content Passed via Templates
 
@@ -317,15 +315,11 @@ This **won’t work**:
 
 ```css
 moj-map::part(app-map__overlay-body) .app-map__overlay-row {
-  /* ❌ This selector will NOT apply */
+  /* This selector will NOT apply */
 }
 ```
 
-The `.app-map__overlay-row` element lives inside Shadow DOM and is not exposed with a `part` attribute, so your app cannot style it from outside.
-
----
-
-### ✅ Correct approach using `part`
+### Correct approach using `part`
 
 Update your template like this:
 
@@ -345,12 +339,5 @@ moj-map::part(app-map__overlay-row) {
   gap: 4px 12px;
 }
 ```
----
 
 > These styles should be added to your app’s main SCSS/CSS bundle — they’ll automatically apply to overlays rendered by the map component.
-
----
-
-## License
-
-MIT

@@ -77,16 +77,9 @@ export class MojMap extends HTMLElement {
 
   private parseAttributes(): MojMapOptions {
     let tileType = resolveTileType(this.getAttribute('tile-type'))
-    const apiKey = this.getAttribute('api-key')
     const userTokenUrl = this.getAttribute('access-token-url')
     const tileUrl = this.getAttribute('tile-url') || config.tiles.urls.tileUrl
     const vectorUrl = this.getAttribute('vector-url') || config.tiles.urls.vectorUrl
-
-    if (tileType === 'vector' && !apiKey) {
-      console.warn('[moj-map] tile-type="vector" was requested but no api-key provided. Falling back to raster.')
-      tileType = 'raster'
-    }
-
     const tokenUrl =
       tileType === 'raster'
         ? userTokenUrl || config.tiles.defaultTokenUrl
@@ -108,6 +101,7 @@ export class MojMap extends HTMLElement {
     const options = this.parseAttributes()
     let accessToken = ''
     let expiresIn = 0
+    const apiKey = config.apiKey
 
     try {
       if (options.tokenUrl.toLowerCase() !== 'none') {
@@ -125,18 +119,21 @@ export class MojMap extends HTMLElement {
     })
 
     if (options.tileType === 'vector') {
-      const apiKey = this.getAttribute('api-key')!
-      const vectorLayer = new OrdnanceSurveyVectorTileLayer()
-
-      try {
-        await vectorLayer.applyVectorStyle(apiKey, options.vectorUrl!)
-        this.map.addLayer(vectorLayer)
-      } catch (err) {
-        console.warn('[moj-map] Failed to initialize vector layer. Falling back to raster.', err)
-        const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
-        this.map.addLayer(rasterLayer)
-        this.imageTileLayer = rasterLayer
+      if (!apiKey) {
+        console.warn('[moj-map] No API key configured in .env. Falling back to image tiles.')
         options.tileType = 'raster'
+      } else {
+        const vectorLayer = new OrdnanceSurveyVectorTileLayer()
+        try {
+          await vectorLayer.applyVectorStyle(apiKey, options.vectorUrl!)
+          this.map.addLayer(vectorLayer)
+        } catch (err) {
+          console.warn('[moj-map] Failed to initialize vector layer. Falling back to image tiles.', err)
+          const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
+          this.map.addLayer(rasterLayer)
+          this.imageTileLayer = rasterLayer
+          options.tileType = 'raster'
+        }
       }
     }
 

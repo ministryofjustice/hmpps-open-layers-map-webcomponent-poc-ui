@@ -5,6 +5,7 @@ import Overlay from 'ol/Overlay'
 import { Interaction } from 'ol/interaction'
 import { defaults as defaultControls } from 'ol/control';
 import Rotate from 'ol/control/Rotate';
+import createCtrlDragRotateInteraction from './ctrl-drag-rotate'
 import DefaultView from './view'
 
 interface MojMapInstanceOptions {
@@ -22,12 +23,17 @@ export default class MojMapInstance extends Map {
       target: options.target,
       layers,
       overlays: options.overlays || [],
-      interactions: defaultInteractions().extend(options.interactions || []),
-        controls: defaultControls({ rotate: false }).extend([
-          new Rotate({
-            autoHide: false,
-          }),
-        ]),
+      interactions: defaultInteractions({
+        altShiftDragRotate: false,
+      }).extend([
+        ...(options.interactions || []),
+        createCtrlDragRotateInteraction(),
+      ]),
+      controls: defaultControls({ rotate: false }).extend([
+        new Rotate({
+          autoHide: false,
+        }),
+      ]),
       view: new DefaultView(),
     })
   }

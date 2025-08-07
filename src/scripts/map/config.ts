@@ -21,6 +21,7 @@ const config = {
       center: fromLonLat(ukCenter),
     },
   },
+  apiKey: VITE_OS_API_KEY,
   tiles: {
     zoom: {
       min: 7,
