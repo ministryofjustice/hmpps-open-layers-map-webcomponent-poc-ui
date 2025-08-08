@@ -20,13 +20,16 @@
     tile-url="{{ params.tileUrl }}"
   {% endif %}
 
-  {% if params.controls.scaleLine %}
-    scale-line
+  {% if params.controls.scaleControl %}
+    scale-control="{{ params.controls.scaleControl }}"
   {% endif %}
   {% if params.controls.zoomSlider %}
     zoom-slider
   {% endif %}
-  {% if params.controls.rotateControl %}
+  {% if params.controls.rotateControl is defined %}
     rotate-control="{{ params.controls.rotateControl }}"
+  {% endif %}
+  {% if params.controls.locationDisplay %}
+    location-display="{{ params.controls.locationDisplay }}"
   {% endif %}
 ></moj-map>
