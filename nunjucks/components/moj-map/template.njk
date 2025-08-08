@@ -15,12 +15,9 @@
     zoom-slider
   {% endif %}
 
-  {% if params.controls.rotateControl is defined %}
-    {% set rotateVal = params.controls.rotateControl %}
-    {% if rotateVal %}{% set rotateVal = 'true' %}{% else %}{% set rotateVal = 'false' %}{% endif %}
-    rotate-control="{{ rotateVal }}"
+  {% if params.controls.rotateControl %}
+    rotate-control="true"
   {% endif %}
-
 
   {% if params.controls.locationDisplay %}
     location-display="{{ params.controls.locationDisplay }}"

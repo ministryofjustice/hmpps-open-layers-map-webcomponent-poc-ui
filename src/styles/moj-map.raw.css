@@ -403,6 +403,7 @@
   background: rgb(180, 220, 237);
   display: block;
   font-family: "GDS Transport", arial, sans-serif;
+  height: 100%;
   width: 100%;
 }
 

@@ -86,14 +86,69 @@ nunjucks.configure([
 ```
 
 ```njk
+{% from "components/moj-map/macro.njk" import mojMap %}
+
 {{ mojMap({
-  cspNonce: params.cspNonce,
+  cspNonce: cspNonce,
   geoData: {
     points: params.geoData.points,
     lines: params.geoData.lines
   }
 }) }}
 ```
+
+---
+
+## CSP Policy (Content Security Policy)
+
+Your CSP should allow the relevant domains necessary for using Ordnance Survey map tiles and use a nonce.
+
+If you're using the HMPPS Typescript Template, add 'api.os.uk' and 'cdn.jsdelivr.net' to the following directives like below:
+
+```ts
+router.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        connectSrc: ["'self'", 'api.os.uk'],
+        imgSrc: ["'self'", 'api.os.uk', 'data:', 'blob:'],
+        styleSrc: ["'self'", 'cdn.jsdelivr.net', (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
+        fontSrc: ["'self'", 'cdn.jsdelivr.net'],
+        styleSrcAttr: ["'unsafe-inline'"],
+      },
+    },
+  })
+)
+```
+
+## Nunjucks Macro Parameters
+
+The `mojMap()` macro accepts a config object using the following keys:
+
+| Parameter               | Type / Values                                     | Description                                                                 |
+|-------------------------|---------------------------------------------------|-----------------------------------------------------------------------------|
+| `points`                | Array                                             | Optional array of point features.                                           |
+| `lines`                 | Array                                             | Optional array of line features.                                            |
+| `usesInternalOverlays` | boolean                                           | If true, enables built-in overlay and pointer interaction.                  |
+| `cspNonce`              | string                                            | Optional CSP nonce to allow inline styles.                                  |
+| `tileType`              | `'vector'` \| `'raster'`                          | Optional. Defaults to `'vector'` if WebGL is supported.                     |
+| `tileUrl`               | string                                            | Optional custom raster tile URL (`{z}/{x}/{y}`).                            |
+| `vectorUrl`             | string                                            | Optional custom vector style base URL. The component appends `/resources/styles` internally. |
+
+### Control Parameters
+
+| Parameter           | Type / Values                         | Description                                                                 |
+|---------------------|----------------------------------------|-----------------------------------------------------------------------------|
+| `rotateControl`     | `true` \| `'auto-hide'` \| `false`     | Show the rotate/compass control. `'auto-hide'` hides it unless rotated.     |
+| `zoomSlider`        | boolean                                | If true, shows the zoom slider.                                             |
+| `scaleControl`      | `'bar'` \| `'line'` \| `false`         | If defined, shows a scale bar or line.                                      |
+| `locationDisplay`   | `'dms'` \| `'latlon'` \| `false`       | Shows a coordinate readout near the scale bar.                              |
+| `locationSource`    | `'pointer'` \| `'center'`              | Where to read coordinates from. `'pointer'` tracks the mouse.               |
+
+---
+
+*For raw HTML component usage and attribute-level control, see [Component Attributes](#component-attributes).*
 
 ---
 
@@ -127,7 +182,7 @@ Notes:
 
 ## Examples
 
-### Basic map with controls (Nunjucks, new attributes)
+### Basic map with controls (Nunjucks)
 
 ```njk
 {% from "moj-map/macro.njk" import mojMap %}
@@ -148,81 +203,6 @@ Notes:
     zoomSlider: true
   }
 }) }}
-```
-
-### Programmatic creation (dev example)
-
-```ts
-import 'hmpps-open-layers-map'
-
-const map = document.createElement('moj-map')
-
-// Core setup
-map.setAttribute('vector-url', '/os/maps/vector/v1/vts')
-map.setAttribute('tile-url', import.meta.env.VITE_OS_MAPS_TILE_URL!)
-map.setAttribute('csp-nonce', '1234abcd')
-map.setAttribute('uses-internal-overlays', '')
-map.setAttribute('points', '[]')
-map.setAttribute('lines', '[]')
-
-// Control options
-map.setAttribute('scale-control', 'bar')      // 'bar' | 'line' | omit
-map.setAttribute('location-display', 'latlon') // 'dms' | 'latlon' | omit
-// map.setAttribute('location-source', 'center') // default is 'pointer' if omitted
-map.setAttribute('rotate-control', 'true')    // 'false' | 'auto-hide' | 'true'/omit
-map.setAttribute('zoom-slider', 'true')       // enable zoom slider
-
-document.body.appendChild(map)
-```
-
----
-
-## Optional: Using Raster Tiles or Supporting Fallback
-
-By default, this component uses Ordnance Survey vector tiles. To fallback to image tiles or force raster mode, configure your application to retrieve an access token from the OS Maps API.
-
-Example Express middleware:
-
-```ts
-  app.use(
-    '/tile-token-proxy',
-    mojMapMiddleware({
-      authUrl: config.maps.authUrl,
-      apiKey: config.maps.apiKey,
-      apiSecret: config.maps.apiSecret,
-    }),
-  )
-```
-
-Use the `access-token-url`, `tile-type="raster"`, `tile-url`, and `vector-url` attributes as needed. For local development you can stub URLs via environment variables.
-
----
-
-## CSP Policy (Content Security Policy)
-
-To use this component safely in production, especially when enabling inline styles or scripts, your CSP should allow the relevant domains and use a nonce.
-
-If you're using the HMPPS Typescript Template, add the following:
-
-```ts
-router.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        connectSrc: ["'self'", 'api.os.uk'],
-        imgSrc: ["'self'", 'api.os.uk', 'data:', 'blob:'],
-        // @ts-expect-error mismatch response
-        scriptSrc: ["'self'", (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
-        // @ts-expect-error mismatch response
-        styleSrc: ["'self'", 'cdn.jsdelivr.net', (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
-        fontSrc: ["'self'", 'cdn.jsdelivr.net'],
-        formAction: [`'self' ${config.apis.hmppsAuth.externalUrl}`],
-      },
-    },
-  })
-)
 ```
 
 ---
@@ -355,5 +335,28 @@ All OpenLayers controls are inside the component’s Shadow DOM. The component e
   ```
 
 You can also place the coordinate readout above it with component-scoped CSS. Adjust via `--moj-scale-bar-bottom` if needed.
+
+---
+
+## Optional: Using Raster Tiles or Supporting Fallback
+
+By default, this component uses Ordnance Survey vector tiles. To fallback to image tiles or force raster mode, configure your application to retrieve an access token from the OS Maps API.
+
+Example Express middleware:
+
+```ts
+  import { mojMapMiddleware } from 'hmpps-open-layers-map/tile-token-proxy'
+  
+  app.use(
+    '/tile-token-proxy',
+    mojMapMiddleware({
+      authUrl: config.maps.authUrl,
+      apiKey: config.maps.apiKey,
+      apiSecret: config.maps.apiSecret,
+    }),
+  )
+```
+
+Use the `access-token-url`, `tile-type="raster"`, `tile-url`, and `vector-url` attributes as needed. For local development you can stub URLs via environment variables.
 
 ---

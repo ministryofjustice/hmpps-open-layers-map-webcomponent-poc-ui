@@ -81,8 +81,11 @@ export class MojMap extends HTMLElement {
   private parseAttributes(): MojMapOptions {
     let tileType = resolveTileType(this.getAttribute('tile-type'))
     const userTokenUrl = this.getAttribute('access-token-url')
-    const tileUrl = this.getAttribute('tile-url') || config.tiles.urls.tileUrl
-    const vectorUrl = this.getAttribute('vector-url') || config.tiles.urls.vectorUrl
+    const tileUrlAttr = this.getAttribute('tile-url')
+    const vectorUrlAttr = this.getAttribute('vector-url')
+
+    const tileUrl = tileUrlAttr && tileUrlAttr.trim() !== '' ? tileUrlAttr : config.tiles.urls.tileUrl
+    const vectorUrl = vectorUrlAttr && vectorUrlAttr.trim() !== '' ? vectorUrlAttr : config.tiles.urls.vectorUrl
 
     const tokenUrl =
       tileType === 'raster'
@@ -189,7 +192,7 @@ export class MojMap extends HTMLElement {
     const parseBool = (name: string): boolean =>
       this.hasAttribute(name) && this.getAttribute(name) !== 'false'
 
-    // rotate-control: 'false' | 'auto-hide' | anything/omitted => autoHide: false (shown)
+    // rotate-control: 'false' | 'auto-hide' | anything/omitted -> autoHide: false (shown)
     const rotateAttr = this.getAttribute('rotate-control')
     const rotateOpt =
       rotateAttr === 'false'
