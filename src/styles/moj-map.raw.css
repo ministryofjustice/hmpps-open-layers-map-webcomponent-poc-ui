@@ -467,14 +467,20 @@
   --moj-scale-bar-bottom: 20px;
 }
 
-[type=button]:not(:disabled),
-[type=reset]:not(:disabled),
-[type=submit]:not(:disabled),
-button:not(:disabled) {
+:host[type=button]:not(:disabled),
+:host[type=reset]:not(:disabled),
+:host[type=submit]:not(:disabled),
+:host button:not(:disabled) {
   cursor: pointer;
 }
 
-.ol-control button {
+:host .ol-control {
+  background-color: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+:host .ol-control button {
   font-family: "GDS Transport", arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -483,6 +489,17 @@ button:not(:disabled) {
   line-height: 1.25;
   font-family: "GDS Transport", arial, sans-serif;
   line-height: 1;
+  background-color: #0b0c0c;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  border-radius: 0;
+  width: 2em;
+  height: 2em;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out, border-color 0.1s ease-in-out;
 }
 /*! Copyright (c) 2011 by Margaret Calvert & Henrik Kubel. All rights reserved. The font has been customised for exclusive use on gov.uk. This cut is not commercially available. */ /* stylelint-disable-line scss/comment-no-loud  */
 @font-face {
@@ -500,21 +517,27 @@ button:not(:disabled) {
   font-display: fallback;
 }
 @media print {
-  .ol-control button {
+  :host .ol-control button {
     font-family: sans-serif;
   }
 }
 @media (min-width: 40.0625em) {
-  .ol-control button {
+  :host .ol-control button {
     font-size: 1.1875rem;
     line-height: 1.3157894737;
   }
 }
 @media print {
-  .ol-control button {
+  :host .ol-control button {
     font-size: 14pt;
     line-height: 1.15;
   }
+}
+
+:host .ol-control button:hover,
+:host .ol-control button:focus {
+  text-decoration: none;
+  outline: 1px solid #ffffff;
 }
 
 :host(.has-zoom-slider) .ol-zoom .ol-zoom-out {
@@ -523,9 +546,9 @@ button:not(:disabled) {
 
 :host(.has-zoom-slider) .ol-zoomslider {
   background-color: transparent;
-  top: 38px;
+  top: 46px;
   left: 0.5em;
-  width: 1.75em;
+  width: 38px;
   height: 200px;
   position: absolute;
 }
@@ -548,8 +571,13 @@ button:not(:disabled) {
   top: 232px;
 }
 
+:host .ol-zoomslider button {
+  position: relative;
+  height: 10px;
+}
+
 :host .ol-scale-bar {
-  bottom: --moj-scale-bar-bottom;
+  bottom: var(--moj-scale-bar-bottom);
   left: 50%;
   transform: translateX(-50%);
 }
@@ -617,7 +645,7 @@ button:not(:disabled) {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(var(--moj-scale-bar-bottom) + 15px);
+  bottom: calc(var(--moj-scale-bar-bottom) + 25px);
   font-family: "GDS Transport", arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -645,18 +673,6 @@ button:not(:disabled) {
     font-size: 14pt;
     line-height: 1.2;
   }
-}
-
-/* optional alternate positions */
-:host .moj-map__location-dms.pos-bl {
-  left: 8px;
-  transform: none;
-}
-
-:host .moj-map__location-dms.pos-br {
-  right: 8px;
-  left: auto;
-  transform: none;
 }
 
 .app-map__overlay {
