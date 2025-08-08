@@ -1,16 +1,11 @@
-import BaseLayer from 'ol/layer/Base'
 import TileLayer from 'ol/layer/Tile'
-import VectorTileLayer from 'ol/layer/VectorTile'
+import BaseLayer from 'ol/layer/Base'
 import { XYZ } from 'ol/source'
 import TileState from 'ol/TileState'
 import { Tile as OlTile } from 'ol'
 import ImageTile from 'ol/ImageTile'
-import { applyStyle } from 'ol-mapbox-style'
 import axios from 'axios'
-import config from './config'
-import { supportsWebGL } from '../helpers/browser'
-
-type TileType = 'vector' | 'raster'
+import config from '../config'
 
 export const ordnanceSurveyImageTileLoader = (token: string) => {
   return (tile: OlTile, src: string) => {
@@ -20,7 +15,7 @@ export const ordnanceSurveyImageTileLoader = (token: string) => {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob',
       })
-      .then(response => {
+      .then((response) => {
         const image = imageTile.getImage()
         if (image instanceof HTMLImageElement) {
           const url = URL.createObjectURL(response.data)
@@ -34,15 +29,6 @@ export const ordnanceSurveyImageTileLoader = (token: string) => {
         imageTile.setState(TileState.ERROR)
       })
   }
-}
-
-export function isImageTileLayer(layer: BaseLayer): layer is OrdnanceSurveyImageTileLayer {
-  return layer instanceof OrdnanceSurveyImageTileLayer
-}
-
-export function resolveTileType(requested: string | null): TileType {
-  if (requested === 'vector' || requested === 'raster') return requested
-  return supportsWebGL() ? 'vector' : 'raster'
 }
 
 export class OrdnanceSurveyImageTileLayer extends TileLayer<XYZ> {
@@ -66,16 +52,8 @@ export class OrdnanceSurveyImageTileLayer extends TileLayer<XYZ> {
   }
 }
 
-export class OrdnanceSurveyVectorTileLayer extends VectorTileLayer {
-  constructor() {
-    super({
-      declutter: true,
-    })
-  }
-
-  async applyVectorStyle(apiKey: string, baseUrl: string): Promise<void> {
-    const styleUrl = `${baseUrl.replace(/\/$/, '')}/resources/styles?srs=3857&key=${apiKey}`
-    return applyStyle(this, styleUrl)
-  }
+export function isImageTileLayer(
+  layer: BaseLayer,
+): layer is OrdnanceSurveyImageTileLayer {
+  return layer instanceof OrdnanceSurveyImageTileLayer
 }
-

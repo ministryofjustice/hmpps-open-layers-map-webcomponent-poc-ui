@@ -1,3 +1,89 @@
-.ol-control button {
-  font-size: 20px;
+@import "govuk-frontend/dist/govuk/settings/all";
+@import "govuk-frontend/dist/govuk/tools/all";
+@import "govuk-frontend/dist/govuk/helpers/all";
+
+:host {
+  --moj-scale-bar-bottom: #{govuk-spacing(4)};
 }
+
+[type=button]:not(:disabled),
+[type=reset]:not(:disabled),
+[type=submit]:not(:disabled),
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+.ol-control button {
+  @include govuk-font(19, $weight: bold);
+  font-family: $govuk-font-family;
+  line-height: 1;
+}
+
+:host(.has-zoom-slider) .ol-zoom .ol-zoom-out {
+  margin-top: 200px;
+}
+
+:host(.has-zoom-slider) .ol-zoomslider {
+  background-color: transparent;
+  top: 38px;
+  left: 0.5em;
+  width: 1.75em;
+  height: 200px;
+  position: absolute;
+}
+
+:host(.has-zoom-slider) .ol-touch .ol-zoom .ol-zoom-out {
+  margin-top: 212px;
+}
+
+:host(.has-zoom-slider) .ol-touch .ol-zoomslider {
+  top: 2.75em;
+}
+
+:host(.has-zoom-slider) .ol-zoom-in.ol-has-tooltip:hover [role='tooltip'],
+:host(.has-zoom-slider) .ol-zoom-in.ol-has-tooltip:focus [role='tooltip'] {
+  top: 3px;
+}
+
+:host(.has-zoom-slider) .ol-zoom-out.ol-has-tooltip:hover [role='tooltip'],
+:host(.has-zoom-slider) .ol-zoom-out.ol-has-tooltip:focus [role='tooltip'] {
+  top: 232px;
+}
+
+// Scale bar positioned centrally at the bottom
+:host .ol-scale-bar {
+  bottom: --moj-scale-bar-bottom;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+:host .ol-scale-text {
+  @include govuk-font(16);
+  color: govuk-colour("black");
+}
+
+:host .ol-scale-step-text {
+  @include govuk-font(14);
+  color: govuk-colour("black");
+}
+
+:host .ol-scale-singlebar-even {
+  background-color: govuk-colour("black");
+}
+
+/* coordinates */
+:host .moj-map__location-dms {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--moj-scale-bar-bottom) + govuk-spacing(3));
+  @include govuk-font(16);
+  background: transparent;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* optional alternate positions */
+:host .moj-map__location-dms.pos-bl { left: 8px; transform: none; }
+:host .moj-map__location-dms.pos-br { right: 8px; left: auto; transform: none; }

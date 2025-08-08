@@ -11,7 +11,7 @@
   {% endif %}
 
   {% if params.accessTokenUrl %}
-    vector-url="{{ params.accessTokenUrl }}"
+    access-token-url="{{ params.accessTokenUrl }}"
   {% endif %}
   {% if params.vectorUrl %}
     vector-url="{{ params.vectorUrl }}"
@@ -19,7 +19,14 @@
   {% if params.tileUrl %}
     tile-url="{{ params.tileUrl }}"
   {% endif %}
-></moj-map>
 
-
-
+  {% if params.controls.scaleLine %}
+    scale-line
+  {% endif %}
+  {% if params.controls.zoomSlider %}
+    zoom-slider
+  {% endif %}
+  {% if params.controls.rotateControl %}
+    rotate-control="{{ params.controls.rotateControl }}"
+  {% endif %}
+/>

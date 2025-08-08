@@ -1,5 +1,5 @@
 import { View } from 'ol'
-import config from './config'
+import config from '../config'
 
 // The view is set up to display the entire UK
 // The extent / centre / zoom will be updated when map is populated with features
