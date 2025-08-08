@@ -184,18 +184,14 @@ By default, this component uses Ordnance Survey vector tiles. To fallback to ima
 Example Express middleware:
 
 ```ts
-app.get('/map/token', async (_req, res) => {
-  const response = await got.post('https://api.os.uk/oauth2/token/v1', {
-    form: {
-      grant_type: 'client_credentials',
-      client_id: process.env.OS_CLIENT_ID,
-      client_secret: process.env.OS_CLIENT_SECRET,
-    },
-    responseType: 'json',
-  })
-
-  res.json({ access_token: response.body.access_token })
-})
+  app.use(
+    '/tile-token-proxy',
+    mojMapMiddleware({
+      authUrl: config.maps.authUrl,
+      apiKey: config.maps.apiKey,
+      apiSecret: config.maps.apiSecret,
+    }),
+  )
 ```
 
 Use the `access-token-url`, `tile-type="raster"`, `tile-url`, and `vector-url` attributes as needed. For local development you can stub URLs via environment variables.
