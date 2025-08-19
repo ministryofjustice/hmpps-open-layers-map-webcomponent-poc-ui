@@ -17,7 +17,9 @@ export class OrdnanceSurveyVectorTileLayer extends VectorTileLayer {
   }
 
   async applyVectorStyle(apiKey: string, baseUrl: string): Promise<void> {
-    const styleUrl = `${baseUrl.replace(/\/$/, '')}/resources/styles?srs=3857&key=${apiKey}`
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '')
+    const separator = cleanBaseUrl.includes('?') ? '&' : '?'
+    const styleUrl = `${cleanBaseUrl}${separator}key=${apiKey}`
     return applyStyle(this, styleUrl)
   }
 }

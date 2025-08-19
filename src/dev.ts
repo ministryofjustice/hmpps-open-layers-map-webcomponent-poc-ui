@@ -1,10 +1,11 @@
 import './scripts/moj-map.ts'
+import config from './scripts/map/config'
 
 const map = document.createElement('moj-map')
 
 // Core setup
-map.setAttribute('vector-url', '/os/maps/vector/v1/vts')
-map.setAttribute('tile-url', import.meta.env.VITE_OS_MAPS_TILE_URL!)
+map.setAttribute('vector-url', config.tiles.urls.vectorUrl)
+map.setAttribute('tile-url', config.tiles.urls.tileUrl)
 map.setAttribute('csp-nonce', '1234abcd')
 map.setAttribute('uses-internal-overlays', '')
 map.setAttribute('points', '[]')
