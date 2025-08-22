@@ -20,7 +20,7 @@ export interface MojMapInstanceOptions {
     /** 'dms' → Degrees/Minutes/Seconds, 'latlon' → decimal lat/lon */
     locationDisplay?: 'dms' | 'latlon'
     /** where to read coordinates from */
-    locationDisplaySource?: 'center' | 'pointer'
+    locationDisplaySource?: 'centre' | 'pointer'
   }
 }
 
@@ -55,12 +55,12 @@ export class MojMapInstance extends Map {
       controls.push(new ScaleLine({ units: 'metric' }))
     }
 
-    // Location display (DMS or Lat/Long), from center or pointer
+    // Location display (DMS or Lat/Long), from centre or pointer
     if (controlOptions.locationDisplay === 'dms' || controlOptions.locationDisplay === 'latlon') {
       controls.push(
         new LocationDisplayControl({
           mode: controlOptions.locationDisplay,                         // 'dms' | 'latlon'
-          source: controlOptions.locationDisplaySource ?? 'pointer',     // 'center' | 'pointer'
+          source: controlOptions.locationDisplaySource ?? 'pointer',     // 'centre' | 'pointer'
           position: 'bottom-center',
         })
       )

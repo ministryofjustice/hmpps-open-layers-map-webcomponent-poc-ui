@@ -144,7 +144,7 @@ The `mojMap()` macro accepts a config object using the following keys:
 | `zoomSlider`        | boolean                                | If true, shows the zoom slider.                                             |
 | `scaleControl`      | `'bar'` \| `'line'` \| `false`         | If defined, shows a scale bar or line.                                      |
 | `locationDisplay`   | `'dms'` \| `'latlon'` \| `false`       | Shows a coordinate readout near the scale bar.                              |
-| `locationSource`    | `'pointer'` \| `'center'`              | Where to read coordinates from. `'pointer'` tracks the mouse.               |
+| `locationSource`    | `'pointer'` \| `re'`              | Where to read coordinates from. `'pointer'` tracks the mouse.               |
 
 ---
 
@@ -172,7 +172,7 @@ The `mojMap()` macro accepts a config object using the following keys:
 | `zoom-slider`          | boolean attribute (`''` to enable, `false` to disable) | not shown     | Show the zoom slider control between zoom-in and zoom-out.                                           |
 | `scale-control`        | `bar` \| `line` \| `false` (or omit)              | not shown     | `bar` shows a segmented scale bar; `line` shows a simple scale line. Omit to hide.                   |
 | `location-display`     | `dms` \| `latlon` \| `false` (or omit)            | not shown     | Show a coordinate readout near the scale bar. `dms` shows degrees/minutes/seconds; `latlon` shows decimal degrees with hemisphere suffixes. |
-| `location-source`      | `pointer` \| `center`                              | `pointer`     | Where to read coordinates from. `pointer` updates as the mouse moves; `center` updates on pan/zoom end. |
+| `location-source`      | `pointer` \| `centre`                              | `pointer`     | Where to read coordinates from. `pointer` updates as the mouse moves; `centre` updates on pan/zoom end. |
 
 Notes:
 - Boolean attributes follow HTML rules: presence enables, `attribute="false"` disables.
@@ -198,7 +198,7 @@ Notes:
   controls: {
     scaleControl: 'bar',          // 'bar' | 'line'
     locationDisplay: 'dms',       // 'dms' | 'latlon'
-    locationSource: 'pointer',    // 'pointer' (default) | 'center'
+    locationSource: 'pointer',    // 'pointer' (default) | 'centre'
     rotateControl: 'auto-hide',   // 'false' | 'auto-hide' | 'true'
     zoomSlider: true
   }

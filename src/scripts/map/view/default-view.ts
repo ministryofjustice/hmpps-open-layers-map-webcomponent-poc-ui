@@ -11,7 +11,7 @@ class DefaultView extends View {
       showFullExtent: true,
       minZoom: config.view.zoom.min,
       maxZoom: config.view.zoom.max,
-      center: config.view.default.center,
+      center: config.view.default.centre,
       zoom: config.view.default.zoom,
     })
   }

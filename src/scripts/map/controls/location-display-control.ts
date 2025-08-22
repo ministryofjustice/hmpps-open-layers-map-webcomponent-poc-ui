@@ -4,7 +4,7 @@ import { transform } from 'ol/proj'
 import { formatDMS, formatLatLon } from '../../helpers/coordinates'
 
 type Mode = 'dms' | 'latlon'            // 'latlon' = decimal lat/lon
-type Source = 'center' | 'pointer'     // update from map center or mouse pointer
+type Source = 'centre' | 'pointer'     // update from map centre or mouse pointer
 
 type Options = {
   className?: string
@@ -55,10 +55,10 @@ export default class LocationDisplayControl extends Control {
 
   private onMoveEnd = () => {
     if (!this.mapRef) return
-    const center = this.mapRef.getView().getCenter()
-    if (!center) return
+    const centre = this.mapRef.getView().getCenter()
+    if (!centre) return
     const [lon, lat] = transform(
-      center,
+      centre,
       LocationDisplayControl.PROJ_IN,
       LocationDisplayControl.PROJ_OUT
     )

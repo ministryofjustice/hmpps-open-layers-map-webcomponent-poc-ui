@@ -2,7 +2,7 @@ import { fromLonLat, transformExtent } from 'ol/proj';
 
 // UK bounding box (approximate for OS tiles)
 const ukProjectedBounds = [-9.01, 49.75, 2.01, 61.01];
-const ukCenter = [-2.547855, 54.00366];
+const ukCentre = [-2.547855, 54.00366];
 
 // Pull environment variables from .env
 const VITE_OS_API_KEY = import.meta.env.VITE_OS_API_KEY ?? '';
@@ -18,7 +18,7 @@ const config = {
     default: {
       zoom: 13,
       extent: transformExtent(ukProjectedBounds, 'EPSG:4326', 'EPSG:3857'),
-      center: fromLonLat(ukCenter),
+      centre: fromLonLat(ukCentre),
     },
   },
   apiKey: VITE_OS_API_KEY,

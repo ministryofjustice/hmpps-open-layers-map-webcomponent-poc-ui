@@ -205,7 +205,7 @@ export class MojMap extends HTMLElement {
     const legacyScaleLine = this.hasAttribute('scale-line') && this.getAttribute('scale-line') !== 'false'
     const scaleControl = explicitScale ?? (legacyScaleLine ? 'line' : undefined)
     const locationDisplay = (this.getAttribute('location-display') as 'dms' | 'latlon' | null) ?? undefined
-    const locationDisplaySource = (this.getAttribute('location-source') as 'center' | 'pointer' | null) ?? undefined
+    const locationDisplaySource = (this.getAttribute('location-source') as 'centre' | 'pointer' | null) ?? undefined
 
     const zoomSlider = parseBool('zoom-slider')
 
