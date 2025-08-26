@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import eslint from 'vite-plugin-eslint'
 
 const isLibMode = process.env.BUILD === 'lib'
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  plugins: [tsconfigPaths(), eslint()],
   root: isLibMode ? undefined : '.',
 
   build: isLibMode
@@ -13,8 +14,8 @@ export default defineConfig({
         lib: {
           entry: 'src/index.ts',
           name: 'MojMap',
-          fileName: (format) => `index.${format}.js`,
-          formats: ['es']
+          fileName: format => `index.${format}.js`,
+          formats: ['es'],
         },
         target: 'es2018',
         cssCodeSplit: false,
