@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.5.31",
+  "version": "0.5.32",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
@@ -13,6 +13,7 @@
     "prepare": "husky",
     "lint": "eslint . --cache --max-warnings 0",
     "lint-fix": "eslint . --cache --max-warnings 0 --fix",
+    "typecheck": "tsc --noEmit",
     "vite": "vite",
     "watch:css": "chokidar 'src/styles/**/*.scss' -c \"npm run build:css\"",
     "build:css": "sass --no-source-map --quiet-deps --load-path=node_modules src/styles/moj-map.scss src/styles/moj-map.raw.css",
