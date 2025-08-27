@@ -3,8 +3,8 @@ import { defaults as defaultInteractions } from 'ol/interaction/defaults'
 import BaseLayer from 'ol/layer/Base'
 import Overlay from 'ol/Overlay'
 import { Interaction } from 'ol/interaction'
-import LocationDisplayControl from './controls/location-display-control'
 import { defaults as defaultControls, Rotate, ScaleLine, ZoomSlider } from 'ol/control'
+import LocationDisplayControl from './controls/location-display-control'
 import createCtrlDragRotateInteraction from './interactions/ctrl-drag-rotate'
 import DefaultView from './view/default-view'
 
@@ -33,10 +33,7 @@ export class MojMapInstance extends Map {
 
     // Rotate control
     if (controlOptions.rotate !== false) {
-      const autoHide =
-        typeof controlOptions.rotate === 'object'
-          ? controlOptions.rotate.autoHide === true
-          : false
+      const autoHide = typeof controlOptions.rotate === 'object' ? controlOptions.rotate.autoHide === true : false
       controls.extend([new Rotate({ autoHide })])
     }
 
@@ -49,7 +46,7 @@ export class MojMapInstance extends Map {
           steps: 2,
           text: false,
           minWidth: 140,
-        })
+        }),
       )
     } else if (controlOptions.scaleControl === 'line') {
       controls.push(new ScaleLine({ units: 'metric' }))
@@ -59,10 +56,10 @@ export class MojMapInstance extends Map {
     if (controlOptions.locationDisplay === 'dms' || controlOptions.locationDisplay === 'latlon') {
       controls.push(
         new LocationDisplayControl({
-          mode: controlOptions.locationDisplay,                         // 'dms' | 'latlon'
-          source: controlOptions.locationDisplaySource ?? 'pointer',     // 'centre' | 'pointer'
+          mode: controlOptions.locationDisplay, // 'dms' | 'latlon'
+          source: controlOptions.locationDisplaySource ?? 'pointer', // 'centre' | 'pointer'
           position: 'bottom-center',
-        })
+        }),
       )
     }
 

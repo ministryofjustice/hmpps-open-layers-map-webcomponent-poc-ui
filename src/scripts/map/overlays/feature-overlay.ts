@@ -3,7 +3,9 @@ import { Coordinate } from 'ol/coordinate'
 
 export default class FeatureOverlay extends Overlay {
   private container: HTMLElement
+
   private content: HTMLElement
+
   private closeButton: HTMLButtonElement
 
   constructor(container: HTMLElement) {
@@ -36,9 +38,7 @@ export default class FeatureOverlay extends Overlay {
 
   showAtCoordinate(coordinate: Coordinate, data: Record<string, unknown>) {
     const templateId = data.overlayTemplateId
-    const template = typeof templateId === 'string'
-      ? document.getElementById(templateId)
-      : null
+    const template = typeof templateId === 'string' ? document.getElementById(templateId) : null
 
     if (!(template instanceof HTMLTemplateElement)) {
       console.warn(`[FeatureOverlay] No valid template found for overlayTemplateId="${templateId}"`)

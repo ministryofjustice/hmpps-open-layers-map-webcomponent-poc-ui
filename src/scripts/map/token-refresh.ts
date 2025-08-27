@@ -9,7 +9,6 @@ export function startTokenRefresh({
   onTokenUpdate: (newToken: string) => void
 }): () => void {
   let timer: ReturnType<typeof setTimeout>
-  let detectIdleInterval: ReturnType<typeof setInterval>
   const CHECK_INTERVAL = 30_000
   const MAX_DRIFT = 60_000
 
@@ -31,7 +30,7 @@ export function startTokenRefresh({
   const initialDelay = Math.max((initialExpiresIn - 60) * 1000, 10_000)
   timer = setTimeout(scheduleRefresh, initialDelay)
 
-  detectIdleInterval = setInterval(() => {
+  const detectIdleInterval = setInterval(() => {
     const now = Date.now()
     const drift = now - lastChecked
     if (drift > CHECK_INTERVAL + MAX_DRIFT) {
@@ -48,18 +47,18 @@ export function startTokenRefresh({
   }
 }
 
-export async function fetchAccessToken(url: string): Promise<{ token: string, expiresIn: number }> {
+export async function fetchAccessToken(url: string): Promise<{ token: string; expiresIn: number }> {
   const response = await fetch(url)
   if (!response.ok) {
     throw new Error(`Failed to fetch access token: ${response.statusText}`)
   }
 
-  const { access_token, expires_in } = await response.json()
+  const { access_token: accessToken, expires_in: initialExpiresIn } = await response.json()
 
-  const expiresIn = Number(expires_in)
-  if (!access_token || isNaN(expiresIn)) {
+  const expiresIn = Number(initialExpiresIn)
+  if (!accessToken || Number.isNaN(expiresIn)) {
     throw new Error(`Invalid access_token or expires_in from token response`)
   }
 
-  return { token: access_token, expiresIn }
+  return { token: accessToken, expiresIn }
 }

@@ -6,7 +6,7 @@ import { MojMapInstance, MojMapInstanceOptions } from './map/map-instance'
 import FeatureOverlay from './map/overlays/feature-overlay'
 import { startTokenRefresh, fetchAccessToken } from './map/token-refresh'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
-import config from '../scripts/map/config'
+import config from './map/config'
 
 import styles from '../styles/moj-map.raw.css?raw'
 
@@ -25,10 +25,15 @@ type MojMapOptions = {
 
 export class MojMap extends HTMLElement {
   private mapNonce: string | null = null
+
   private map!: Map
+
   private imageTileLayer?: OrdnanceSurveyImageTileLayer
+
   private stopTokenRefresh: (() => void) | null = null
+
   private shadow: ShadowRoot
+
   private featureOverlay?: FeatureOverlay
 
   constructor() {
@@ -44,7 +49,7 @@ export class MojMap extends HTMLElement {
       new CustomEvent('map:ready', {
         detail: { map: this.map },
         bubbles: true,
-      })
+      }),
     )
   }
 
@@ -52,7 +57,7 @@ export class MojMap extends HTMLElement {
     this.stopTokenRefresh?.()
   }
 
-  public get points(): any | undefined {
+  public get points(): unknown[] | [] {
     const points = this.getAttribute('points')
     if (!points) return []
     try {
@@ -63,7 +68,7 @@ export class MojMap extends HTMLElement {
     }
   }
 
-  public get lines(): any | undefined {
+  public get lines(): unknown[] | [] {
     const lines = this.getAttribute('lines')
     if (!lines) return []
     try {
@@ -79,7 +84,7 @@ export class MojMap extends HTMLElement {
   }
 
   private parseAttributes(): MojMapOptions {
-    let tileType = resolveTileType(this.getAttribute('tile-type'))
+    const tileType = resolveTileType(this.getAttribute('tile-type'))
     const userTokenUrl = this.getAttribute('access-token-url')
     const tileUrlAttr = this.getAttribute('tile-url')
     const vectorUrlAttr = this.getAttribute('vector-url')
@@ -87,10 +92,7 @@ export class MojMap extends HTMLElement {
     const tileUrl = tileUrlAttr && tileUrlAttr.trim() !== '' ? tileUrlAttr : config.tiles.urls.tileUrl
     const vectorUrl = vectorUrlAttr && vectorUrlAttr.trim() !== '' ? vectorUrlAttr : config.tiles.urls.vectorUrl
 
-    const tokenUrl =
-      tileType === 'raster'
-        ? userTokenUrl || config.tiles.defaultTokenUrl
-        : userTokenUrl || 'none'
+    const tokenUrl = tileType === 'raster' ? userTokenUrl || config.tiles.defaultTokenUrl : userTokenUrl || 'none'
 
     return {
       tileType,
@@ -108,7 +110,7 @@ export class MojMap extends HTMLElement {
     const options = this.parseAttributes()
     let accessToken = ''
     let expiresIn = 0
-    const apiKey = config.apiKey
+    const { apiKey } = config
 
     try {
       if (options.tokenUrl.toLowerCase() !== 'none') {
@@ -176,30 +178,31 @@ export class MojMap extends HTMLElement {
     }
 
     this.map.on('rendercomplete', () => {
-      if (typeof window !== 'undefined' && (window as any).Cypress) {
+      if (typeof window !== 'undefined' && (window as Window & { Cypress?: unknown }).Cypress) {
         this.dispatchEvent(
           new CustomEvent('map:render:complete', {
             detail: { mapInstance: this.map },
             bubbles: true,
             composed: true,
-          })
+          }),
         )
       }
     })
   }
 
   private getControlOptions(): MojMapInstanceOptions['controls'] {
-    const parseBool = (name: string): boolean =>
-      this.hasAttribute(name) && this.getAttribute(name) !== 'false'
+    const parseBool = (name: string): boolean => this.hasAttribute(name) && this.getAttribute(name) !== 'false'
 
     // rotate-control: 'false' | 'auto-hide' | anything/omitted -> autoHide: false (shown)
     const rotateAttr = this.getAttribute('rotate-control')
-    const rotateOpt =
-      rotateAttr === 'false'
-        ? false
-        : rotateAttr === 'auto-hide'
-          ? { autoHide: true }
-          : { autoHide: false }
+    let rotateOpt: false | { autoHide: boolean }
+    if (rotateAttr === 'false') {
+      rotateOpt = false
+    } else if (rotateAttr === 'auto-hide') {
+      rotateOpt = { autoHide: true }
+    } else {
+      rotateOpt = { autoHide: false }
+    }
 
     const explicitScale = this.getAttribute('scale-control') as 'bar' | 'line' | null
     const legacyScaleLine = this.hasAttribute('scale-line') && this.getAttribute('scale-line') !== 'false'
@@ -226,7 +229,7 @@ export class MojMap extends HTMLElement {
 
   render() {
     if (this.mapNonce === null) {
-      console.log('Warning: No CSP nonce provided. Styles may not be applied correctly.')
+      console.warn('Warning: No CSP nonce provided. Styles may not be applied correctly.')
       return
     }
 

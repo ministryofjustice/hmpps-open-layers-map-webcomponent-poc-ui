@@ -1,13 +1,14 @@
-import { fromLonLat, transformExtent } from 'ol/proj';
+import { fromLonLat, transformExtent } from 'ol/proj'
 
 // UK bounding box (approximate for OS tiles)
-const ukProjectedBounds = [-9.01, 49.75, 2.01, 61.01];
-const ukCentre = [-2.547855, 54.00366];
+const ukProjectedBounds = [-9.01, 49.75, 2.01, 61.01]
+const ukCentre = [-2.547855, 54.00366]
 
 // Pull environment variables from .env
-const VITE_OS_API_KEY = import.meta.env.VITE_OS_API_KEY ?? '';
-const VITE_OS_MAPS_TILE_URL = import.meta.env.VITE_OS_MAPS_TILE_URL ?? 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}';
-const VITE_OS_MAPS_VECTOR_URL = import.meta.env.VITE_OS_MAPS_VECTOR_URL ?? 'https://api.os.uk/maps/vector/v1/vts';
+const VITE_OS_API_KEY = import.meta.env.VITE_OS_API_KEY ?? ''
+const VITE_OS_MAPS_TILE_URL =
+  import.meta.env.VITE_OS_MAPS_TILE_URL ?? 'https://api.os.uk/maps/raster/v1/zxy/Road_3857/{z}/{x}/{y}'
+const VITE_OS_MAPS_VECTOR_URL = import.meta.env.VITE_OS_MAPS_VECTOR_URL ?? 'https://api.os.uk/maps/vector/v1/vts'
 
 const config = {
   view: {
@@ -33,6 +34,6 @@ const config = {
     },
     defaultTokenUrl: '/map/token',
   },
-};
+}
 
-export default config;
+export default config

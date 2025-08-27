@@ -34,4 +34,3 @@ export function createScopedStyle(styles: string, nonce?: string): HTMLStyleElem
 export function getMapNonce(mapEl: HTMLElement): string | null {
   return mapEl?.getAttribute('csp-nonce') || null
 }
-

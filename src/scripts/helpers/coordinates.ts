@@ -12,8 +12,10 @@ export function formatDMS(lat: number, lon: number) {
   const lonH = lon >= 0 ? 'E' : 'W'
   const { d: ld, m: lm, s: ls } = toDMS(lat)
   const { d: od, m: om, s: os } = toDMS(lon)
-  return `${String(ld).padStart(2, '0')} ${String(lm).padStart(2, '0')} ${ls.toFixed(2).padStart(5, '0')}${latH} ` +
-         `${String(od).padStart(3, '0')} ${String(om).padStart(2, '0')} ${os.toFixed(2).padStart(5, '0')}${lonH}`
+  return (
+    `${String(ld).padStart(2, '0')} ${String(lm).padStart(2, '0')} ${ls.toFixed(2).padStart(5, '0')}${latH} ` +
+    `${String(od).padStart(3, '0')} ${String(om).padStart(2, '0')} ${os.toFixed(2).padStart(5, '0')}${lonH}`
+  )
 }
 
 export function formatLatLon(lat: number, lon: number, latLonDecimalPlaces = 4): string {
@@ -22,4 +24,3 @@ export function formatLatLon(lat: number, lon: number, latLonDecimalPlaces = 4):
   const hemiLon = lon >= 0 ? 'E' : 'W'
   return `${fmt(lat)}°${hemiLat} ${fmt(lon)}°${hemiLon}`
 }
-

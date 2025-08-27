@@ -66,6 +66,14 @@
     "ol-mapbox-style": "^13.0.1",
     "superagent": "^10.2.0"
   },
+  "peerDependencies": {
+    "ol": "^10.6.1"
+  },
+  "peerDependenciesMeta": {
+    "ol": {
+      "optional": false
+    }
+  },
   "devDependencies": {
     "@ministryofjustice/eslint-config-hmpps": "^0.0.3",
     "@types/express": "^5.0.3",
