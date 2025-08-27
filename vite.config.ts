@@ -6,6 +6,7 @@ const isLibMode = process.env.BUILD === 'lib'
 export default defineConfig({
   plugins: [tsconfigPaths()],
   root: isLibMode ? undefined : '.',
+
   build: isLibMode
     ? {
         outDir: 'dist',
@@ -19,27 +20,21 @@ export default defineConfig({
         cssCodeSplit: false,
         assetsDir: 'map-assets',
         rollupOptions: {
-          external: [
-            /^ol\//, 'ol',
-            'fs', 'path', 'os', 'dotenv', 'express',
-            'http', 'url', 'stream', 'crypto', 'zlib'
-          ],
-          output: {
-            globals: {
-              ol: 'ol'
-            }
-          }
+          external: (id) =>
+            id === 'ol' || /^ol\//.test(id) ||
+            id === 'govuk-frontend' || /^govuk-frontend\//.test(id),
         }
       }
     : undefined,
+
   server: {
     proxy: {
       '/os': {
         target: 'https://api.os.uk',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/os/, ''),
-      },
+        rewrite: (p) => p.replace(/^\/os/, '')
+      }
     },
-    open: true,
+    open: true
   }
 })
