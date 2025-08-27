@@ -50,15 +50,6 @@
     "nunjucks/"
   ],
   "license": "MIT",
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx,css,scss,njk}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ]
-  },
   "dependencies": {
     "@types/qs": "^6.9.18",
     "axios": "^1.9.0",
