@@ -3,7 +3,16 @@ import hmppsConfig from '@ministryofjustice/eslint-config-hmpps'
 export default [
   ...hmppsConfig(),
 
-  { ignores: ['dist/**','node_modules/**','coverage/**','nunjucks/**','src/styles/**/*.raw.css','eslint.config.{js,cjs,mjs}'] },
+  {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      'nunjucks/**',
+      'src/styles/**/*.raw.css',
+      'eslint.config.{js,cjs,mjs}',
+    ],
+  },
 
   {
     files: ['src/**/*.{ts,tsx,js,jsx}'],
@@ -15,9 +24,15 @@ export default [
     },
   },
 
-  // Looser rules for config files and dev scripts
+  // Looser rules for config files, dev scripts, and tests
   {
-    files: ['vite.config.{ts,js,mjs,cjs}', '*.config.{ts,js,mjs,cjs}', 'src/dev.ts'],
+    files: [
+      'vite.config.{ts,js,mjs,cjs}',
+      '*.config.{ts,js,mjs,cjs}',
+      'src/dev.ts',
+      'src/jest.setup.ts',
+      'src/**/*.test.{ts,js}',
+    ],
     rules: {
       'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
       'no-console': 'off',
