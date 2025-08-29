@@ -27,4 +27,8 @@ export default {
     : ['default'],
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   setupFilesAfterEnv: ['<rootDir>/src/jest.setup.ts'],
+  moduleNameMapper: {
+    '\\.(css|scss)$': 'identity-obj-proxy',
+    '\\.css\\?raw$': 'jest-transform-stub',
+  },
 }
