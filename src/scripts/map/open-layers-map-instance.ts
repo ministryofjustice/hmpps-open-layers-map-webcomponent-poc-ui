@@ -8,7 +8,7 @@ import LocationDisplayControl from './controls/location-display-control'
 import createCtrlDragRotateInteraction from './interactions/ctrl-drag-rotate'
 import DefaultView from './view/default-view'
 
-export interface MojMapInstanceOptions {
+export interface OLMapOptions {
   target: HTMLElement
   layers?: BaseLayer[]
   overlays?: Overlay[]
@@ -17,15 +17,14 @@ export interface MojMapInstanceOptions {
     rotate?: boolean | { autoHide?: boolean }
     zoomSlider?: boolean
     scaleControl?: 'bar' | 'line'
-    /** 'dms' → Degrees/Minutes/Seconds, 'latlon' → decimal lat/lon */
     locationDisplay?: 'dms' | 'latlon'
-    /** where to read coordinates from */
     locationDisplaySource?: 'centre' | 'pointer'
+    enable3DBuildings?: boolean
   }
 }
 
-export class MojMapInstance extends Map {
-  constructor(options: MojMapInstanceOptions) {
+export class OLMapInstance extends Map {
+  constructor(options: OLMapOptions) {
     const layers = options.layers || []
     const controlOptions = options.controls || {}
 
@@ -37,7 +36,7 @@ export class MojMapInstance extends Map {
       controls.extend([new Rotate({ autoHide })])
     }
 
-    // Scale control (ScaleBar via ScaleLine with bar: true)
+    // Scale control
     if (controlOptions.scaleControl === 'bar') {
       controls.push(
         new ScaleLine({
@@ -52,12 +51,12 @@ export class MojMapInstance extends Map {
       controls.push(new ScaleLine({ units: 'metric' }))
     }
 
-    // Location display (DMS or Lat/Long), from centre or pointer
+    // Location display control
     if (controlOptions.locationDisplay === 'dms' || controlOptions.locationDisplay === 'latlon') {
       controls.push(
         new LocationDisplayControl({
-          mode: controlOptions.locationDisplay, // 'dms' | 'latlon'
-          source: controlOptions.locationDisplaySource ?? 'pointer', // 'centre' | 'pointer'
+          mode: controlOptions.locationDisplay,
+          source: controlOptions.locationDisplaySource ?? 'pointer',
           position: 'bottom-center',
         }),
       )

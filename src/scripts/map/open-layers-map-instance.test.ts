@@ -1,5 +1,5 @@
 import * as olControl from 'ol/control'
-import { MojMapInstance } from './map-instance'
+import { OLMapInstance } from './open-layers-map-instance'
 
 import * as locationDisplayControl from './controls/location-display-control'
 import * as ctrlDragRotate from './interactions/ctrl-drag-rotate'
@@ -47,32 +47,32 @@ describe('MojMapInstance', () => {
   })
 
   it('adds Rotate control when rotate option enabled', () => {
-    new MojMapInstance({ target, controls: { rotate: true } })
+    new OLMapInstance({ target, controls: { rotate: true } })
     expect(olControl.Rotate).toHaveBeenCalledWith({ autoHide: false })
   })
 
   it('adds Rotate control with autoHide when specified', () => {
-    new MojMapInstance({ target, controls: { rotate: { autoHide: true } } })
+    new OLMapInstance({ target, controls: { rotate: { autoHide: true } } })
     expect(olControl.Rotate).toHaveBeenCalledWith({ autoHide: true })
   })
 
   it('does not add Rotate control when rotate = false', () => {
-    new MojMapInstance({ target, controls: { rotate: false } })
+    new OLMapInstance({ target, controls: { rotate: false } })
     expect(olControl.Rotate).not.toHaveBeenCalled()
   })
 
   it('adds ScaleLine with bar option when scaleControl = bar', () => {
-    new MojMapInstance({ target, controls: { scaleControl: 'bar' } })
+    new OLMapInstance({ target, controls: { scaleControl: 'bar' } })
     expect(olControl.ScaleLine).toHaveBeenCalledWith(expect.objectContaining({ bar: true, units: 'metric' }))
   })
 
   it('adds ScaleLine simple line when scaleControl = line', () => {
-    new MojMapInstance({ target, controls: { scaleControl: 'line' } })
+    new OLMapInstance({ target, controls: { scaleControl: 'line' } })
     expect(olControl.ScaleLine).toHaveBeenCalledWith(expect.objectContaining({ units: 'metric' }))
   })
 
   it('adds LocationDisplayControl when locationDisplay specified', () => {
-    new MojMapInstance({ target, controls: { locationDisplay: 'dms', locationDisplaySource: 'centre' } })
+    new OLMapInstance({ target, controls: { locationDisplay: 'dms', locationDisplaySource: 'centre' } })
     expect(locationDisplayControl.default).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'dms',
@@ -83,18 +83,18 @@ describe('MojMapInstance', () => {
   })
 
   it('adds ZoomSlider when zoomSlider = true', () => {
-    new MojMapInstance({ target, controls: { zoomSlider: true } })
+    new OLMapInstance({ target, controls: { zoomSlider: true } })
     expect(olControl.ZoomSlider).toHaveBeenCalled()
   })
 
   it('always extends interactions with ctrl-drag-rotate', () => {
-    new MojMapInstance({ target })
+    new OLMapInstance({ target })
     expect(ctrlDragRotate.default).toHaveBeenCalled()
     expect(mockExtend).toHaveBeenCalledWith(expect.arrayContaining([{ type: 'CtrlDragRotate' }]))
   })
 
   it('uses DefaultView', () => {
-    new MojMapInstance({ target })
+    new OLMapInstance({ target })
     expect(defaultView.default).toHaveBeenCalled()
   })
 })

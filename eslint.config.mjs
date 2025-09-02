@@ -20,7 +20,10 @@ export default [
       // Allow single named exports so don't need to change from default export if another export is added
       'import/prefer-default-export': 'off',
       // Allow console.warn and console.error to feedback to developers using the component but not console.log
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-console':
+      process.env.NODE_ENV === 'production'
+        ? ['error', { allow: ['warn', 'error'] }]
+        : 'off',
     },
   },
 

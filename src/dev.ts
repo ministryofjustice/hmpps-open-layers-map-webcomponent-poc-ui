@@ -3,6 +3,12 @@ import config from './scripts/map/config'
 
 const map = document.createElement('moj-map')
 
+// Use MapLibre (not OpenLayers)
+map.setAttribute('renderer', 'maplibre')
+
+// Add this so the 3D Buildings button shows up
+map.setAttribute('enable-3d-buildings', '')
+
 // Core setup
 map.setAttribute('vector-url', config.tiles.urls.vectorUrl)
 map.setAttribute('tile-url', config.tiles.urls.tileUrl)

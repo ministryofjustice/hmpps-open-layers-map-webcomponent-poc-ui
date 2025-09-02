@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.5.32",
+  "version": "0.5.33",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
@@ -57,6 +57,7 @@
     "axios": "^1.9.0",
     "dotenv": "^17.2.0",
     "express": "^4.21.2",
+    "maplibre-gl": "^5.7.0",
     "ol-mapbox-style": "^13.0.1",
     "superagent": "^10.2.0"
   },

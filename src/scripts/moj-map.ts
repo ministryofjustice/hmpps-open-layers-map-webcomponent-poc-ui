@@ -1,18 +1,22 @@
-import Map from 'ol/Map'
-import { OrdnanceSurveyImageTileLayer, isImageTileLayer } from './map/layers/ordnance-survey-image'
-import { OrdnanceSurveyVectorTileLayer, resolveTileType } from './map/layers/ordnance-survey-vector'
-import LocationPointerInteraction from './map/interactions/location-pointer-interaction'
-import { MojMapInstance, MojMapInstanceOptions } from './map/map-instance'
-import FeatureOverlay from './map/overlays/feature-overlay'
-import { startTokenRefresh, fetchAccessToken } from './map/token-refresh'
+import maplibreCss from 'maplibre-gl/dist/maplibre-gl.css?raw'
+import { OLMapOptions } from './map/open-layers-map-instance'
+import { setupOpenLayersMap } from './map/setup/setup-openlayers-map'
+import { setupMapLibreMap } from './map/setup/setup-maplibre-map'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
 import config from './map/config'
+import FeatureOverlay from './map/overlays/feature-overlay'
 
 import styles from '../styles/moj-map.raw.css?raw'
 
 type TileType = 'vector' | 'raster'
+type MapRenderer = 'openlayers' | 'maplibre'
+
+type MojMapControls = OLMapOptions['controls'] & {
+  enable3DBuildings?: boolean
+}
 
 type MojMapOptions = {
+  renderer: MapRenderer
   tokenUrl: string
   tileType: TileType
   points?: string
@@ -26,11 +30,7 @@ type MojMapOptions = {
 export class MojMap extends HTMLElement {
   private mapNonce: string | null = null
 
-  private map!: Map
-
-  private imageTileLayer?: OrdnanceSurveyImageTileLayer
-
-  private stopTokenRefresh: (() => void) | null = null
+  private map!: unknown
 
   private shadow: ShadowRoot
 
@@ -44,17 +44,13 @@ export class MojMap extends HTMLElement {
   async connectedCallback() {
     this.mapNonce = getMapNonce(this)
     this.render()
-    await this.initializeMap()
+    await this.initialiseMap()
     this.dispatchEvent(
       new CustomEvent('map:ready', {
         detail: { map: this.map },
         bubbles: true,
       }),
     )
-  }
-
-  disconnectedCallback() {
-    this.stopTokenRefresh?.()
   }
 
   public get points(): unknown[] | [] {
@@ -84,7 +80,9 @@ export class MojMap extends HTMLElement {
   }
 
   private parseAttributes(): MojMapOptions {
-    const tileType = resolveTileType(this.getAttribute('tile-type'))
+    const rendererAttr = this.getAttribute('renderer')
+    const renderer: MapRenderer = rendererAttr === 'maplibre' ? 'maplibre' : 'openlayers'
+    const tileType = this.getAttribute('tile-type') as TileType
     const userTokenUrl = this.getAttribute('access-token-url')
     const tileUrlAttr = this.getAttribute('tile-url')
     const vectorUrlAttr = this.getAttribute('vector-url')
@@ -95,6 +93,7 @@ export class MojMap extends HTMLElement {
     const tokenUrl = tileType === 'raster' ? userTokenUrl || config.tiles.defaultTokenUrl : userTokenUrl || 'none'
 
     return {
+      renderer,
       tileType,
       tokenUrl,
       points: this.getAttribute('points') || undefined,
@@ -106,94 +105,36 @@ export class MojMap extends HTMLElement {
     }
   }
 
-  private async initializeMap() {
+  private async initialiseMap() {
     const options = this.parseAttributes()
-    let accessToken = ''
-    let expiresIn = 0
-    const { apiKey } = config
+    const mapContainer = this.shadow.querySelector('#map') as HTMLElement
 
-    try {
-      if (options.tokenUrl.toLowerCase() !== 'none') {
-        const tokenResponse = await fetchAccessToken(options.tokenUrl)
-        accessToken = tokenResponse.token
-        expiresIn = tokenResponse.expiresIn
-      }
-    } catch (err) {
-      console.error('Failed to retrieve access token:', err)
-    }
+    if (options.renderer === 'maplibre') {
+      this.map = await setupMapLibreMap(
+        mapContainer,
+        options.vectorUrl,
+        this.getControlOptions().enable3DBuildings ?? false,
+      )
+    } else {
+      const overlayCandidate = this.shadow.querySelector('.app-map__overlay')
+      const overlayEl = overlayCandidate instanceof HTMLElement ? overlayCandidate : null
 
-    this.map = new MojMapInstance({
-      target: this.shadow.querySelector('#map') as HTMLElement,
-      layers: [],
-      controls: this.getControlOptions(),
-    })
-
-    if (options.tileType === 'vector') {
-      if (!apiKey) {
-        console.warn('[moj-map] No API key configured in .env. Falling back to image tiles.')
-        options.tileType = 'raster'
-      } else {
-        const vectorLayer = new OrdnanceSurveyVectorTileLayer()
-        try {
-          await vectorLayer.applyVectorStyle(apiKey, options.vectorUrl!)
-          this.map.addLayer(vectorLayer)
-        } catch (err) {
-          console.warn('[moj-map] Failed to initialize vector layer. Falling back to image tiles.', err)
-          const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
-          this.map.addLayer(rasterLayer)
-          this.imageTileLayer = rasterLayer
-          options.tileType = 'raster'
-        }
-      }
-    }
-
-    if (options.tileType === 'raster' && !this.imageTileLayer) {
-      const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
-      this.map.addLayer(rasterLayer)
-      this.imageTileLayer = rasterLayer
-    }
-
-    if (accessToken !== '' && expiresIn !== 0 && this.imageTileLayer && isImageTileLayer(this.imageTileLayer)) {
-      this.stopTokenRefresh = startTokenRefresh({
+      this.map = await setupOpenLayersMap(mapContainer, {
+        target: mapContainer,
+        tileType: options.tileType,
         tokenUrl: options.tokenUrl,
-        initialExpiresIn: expiresIn,
-        onTokenUpdate: (newToken: string) => {
-          this.imageTileLayer!.updateToken(newToken)
-        },
+        tileUrl: options.tileUrl!,
+        vectorUrl: options.vectorUrl!,
+        usesInternalOverlays: options.usesInternalOverlays,
+        overlayEl,
+        controls: this.getControlOptions(),
       })
     }
-
-    if (options.usesInternalOverlays) {
-      const overlayEl = this.shadow.querySelector('.app-map__overlay')
-
-      if (overlayEl instanceof HTMLElement) {
-        this.featureOverlay = new FeatureOverlay(overlayEl)
-        this.map.addOverlay(this.featureOverlay)
-
-        const pointerInteraction = new LocationPointerInteraction(this.featureOverlay)
-        this.map.addInteraction(pointerInteraction)
-      } else {
-        console.warn('[moj-map] Internal overlays enabled but overlay container element not found.')
-      }
-    }
-
-    this.map.on('rendercomplete', () => {
-      if (typeof window !== 'undefined' && (window as Window & { Cypress?: unknown }).Cypress) {
-        this.dispatchEvent(
-          new CustomEvent('map:render:complete', {
-            detail: { mapInstance: this.map },
-            bubbles: true,
-            composed: true,
-          }),
-        )
-      }
-    })
   }
 
-  private getControlOptions(): MojMapInstanceOptions['controls'] {
+  private getControlOptions(): MojMapControls {
     const parseBool = (name: string): boolean => this.hasAttribute(name) && this.getAttribute(name) !== 'false'
 
-    // rotate-control: 'false' | 'auto-hide' | anything/omitted -> autoHide: false (shown)
     const rotateAttr = this.getAttribute('rotate-control')
     let rotateOpt: false | { autoHide: boolean }
     if (rotateAttr === 'false') {
@@ -209,10 +150,8 @@ export class MojMap extends HTMLElement {
     const scaleControl = explicitScale ?? (legacyScaleLine ? 'line' : undefined)
     const locationDisplay = (this.getAttribute('location-display') as 'dms' | 'latlon' | null) ?? undefined
     const locationDisplaySource = (this.getAttribute('location-source') as 'centre' | 'pointer' | null) ?? undefined
-
     const zoomSlider = parseBool('zoom-slider')
 
-    // Host classes for conditional CSS
     this.classList.toggle('has-rotate-control', rotateOpt !== false)
     this.classList.toggle('has-zoom-slider', zoomSlider)
     this.classList.toggle('has-scale-control', !!scaleControl)
@@ -224,6 +163,7 @@ export class MojMap extends HTMLElement {
       scaleControl,
       locationDisplay,
       locationDisplaySource,
+      enable3DBuildings: parseBool('enable-3d-buildings'),
     }
   }
 
@@ -235,6 +175,7 @@ export class MojMap extends HTMLElement {
 
     this.shadow.innerHTML = ''
     this.shadow.appendChild(createScopedStyle(styles, this.mapNonce))
+    this.shadow.appendChild(createScopedStyle(maplibreCss, this.mapNonce))
     this.shadow.appendChild(createMapDOM())
   }
 }

@@ -676,6 +676,33 @@
   }
 }
 
+/* MapLibre controls */
+:host .maplibregl-ctrl button.active {
+  background-color: #b1b4b6;
+  color: #ffffff;
+}
+
+:host .maplibregl-ctrl button.active:hover,
+:host .maplibregl-ctrl button.active:focus {
+  background-color: #505a5f;
+  color: #ffffff;
+  outline: 1px solid #ffffff;
+}
+
+:host .maplibregl-ctrl button:disabled {
+  background-color: #f3f2f1;
+  color: #b1b4b6;
+  border-color: #b1b4b6;
+  cursor: not-allowed;
+}
+
+:host .maplibregl-ctrl button:disabled:hover,
+:host .maplibregl-ctrl button:disabled:focus {
+  background-color: #f3f2f1;
+  color: #b1b4b6;
+  outline: none;
+}
+
 .app-map__overlay {
   position: relative;
   background-color: #ffffff;
