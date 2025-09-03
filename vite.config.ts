@@ -45,9 +45,9 @@ export default defineConfig({
       '/os': {
         target: 'https://api.os.uk',
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/os/, '')
-      }
+        rewrite: p => p.replace(/^\/os/, ''),
+      },
     },
-    open: true
-  }
+    open: true,
+  },
 })
