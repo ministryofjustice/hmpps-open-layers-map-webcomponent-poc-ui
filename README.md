@@ -63,11 +63,7 @@ import { MojMap } from 'hmpps-open-layers-map'
 ## Minimum Usage in HTML
 
 ```html
-<moj-map
-  points='[...]'
-  lines='[...]'
-  csp-nonce="your-csp-nonce"
-></moj-map>
+<moj-map points="[...]" lines="[...]" csp-nonce="your-csp-nonce"></moj-map>
 ```
 
 ---
@@ -79,10 +75,7 @@ You can also render the component via a Nunjucks macro:
 Add `node_modules/hmpps-open-layers-map/nunjucks` to your Nunjucks configuration setup, e.g.
 
 ```js
-nunjucks.configure([
-  '*your-applications-views*',
-  'node_modules/hmpps-open-layers-map/nunjucks'
-])
+nunjucks.configure(['*your-applications-views*', 'node_modules/hmpps-open-layers-map/nunjucks'])
 ```
 
 ```njk
@@ -118,9 +111,38 @@ router.use(
         styleSrcAttr: ["'unsafe-inline'"],
       },
     },
-  })
+  }),
 )
 ```
+
+---
+
+## Choosing a Renderer (OpenLayers vs MapLibre)
+
+The `<moj-map>` component can be rendered using either:
+
+- **OpenLayers** (default) — good for 2D mapping and overlays.
+- **MapLibre GL** (`renderer="maplibre"`) — required if you want 3D pitch/tilt and building extrusion.
+
+### Example (force MapLibre)
+
+````njk
+{% from "components/moj-map/macro.njk" import mojMap %}
+
+{{ mojMap({
+  cspNonce: cspNonce,
+  renderer: "maplibre",             // force MapLibre instead of OpenLayers
+  vectorUrl: "https://api.os.uk/maps/vector/v1/vts",
+  enable3DBuildings: true,          // adds the buildings toggle button if using MapLibre
+  controls: {
+    scaleControl: "bar",
+    locationDisplay: "latlon",
+    rotateControl: "true",
+    zoomSlider: true
+  }
+}) }}
+
+---
 
 ## Nunjucks Macro Parameters
 
@@ -130,21 +152,23 @@ The `mojMap()` macro accepts a config object using the following keys:
 |-------------------------|---------------------------------------------------|-----------------------------------------------------------------------------|
 | `points`                | Array                                             | Optional array of point features.                                           |
 | `lines`                 | Array                                             | Optional array of line features.                                            |
-| `usesInternalOverlays` | boolean                                           | If true, enables built-in overlay and pointer interaction.                  |
+| `usesInternalOverlays`  | boolean                                           | If true, enables built-in overlay and pointer interaction.                  |
 | `cspNonce`              | string                                            | Optional CSP nonce to allow inline styles.                                  |
 | `tileType`              | `'vector'` \| `'raster'`                          | Optional. Defaults to `'vector'` if WebGL is supported.                     |
 | `tileUrl`               | string                                            | Optional custom raster tile URL (`{z}/{x}/{y}`).                            |
 | `vectorUrl`             | string                                            | Optional custom vector style base URL. The component appends `/resources/styles` internally. |
+| `renderer`              | `'openlayers'` \| `'maplibre'`                    | Selects which rendering library to use. Default is `'openlayers'`.          |
 
 ### Control Parameters
 
-| Parameter           | Type / Values                         | Description                                                                 |
-|---------------------|----------------------------------------|-----------------------------------------------------------------------------|
-| `rotateControl`     | `true` \| `'auto-hide'` \| `false`     | Show the rotate/compass control. `'auto-hide'` hides it unless rotated.     |
-| `zoomSlider`        | boolean                                | If true, shows the zoom slider.                                             |
-| `scaleControl`      | `'bar'` \| `'line'` \| `false`         | If defined, shows a scale bar or line.                                      |
-| `locationDisplay`   | `'dms'` \| `'latlon'` \| `false`       | Shows a coordinate readout near the scale bar.                              |
-| `locationSource`    | `'pointer'` \| `re'`              | Where to read coordinates from. `'pointer'` tracks the mouse.               |
+| Parameter            | Type / Values                         | Description                                                                 |
+|----------------------|----------------------------------------|-----------------------------------------------------------------------------|
+| `rotateControl`      | `true` \| `'auto-hide'` \| `false`     | Show the rotate/compass control. `'auto-hide'` hides it unless rotated.     |
+| `zoomSlider`         | boolean                                | If true, shows the zoom slider.                                             |
+| `scaleControl`       | `'bar'` \| `'line'` \| `false`         | If defined, shows a scale bar or line.                                      |
+| `locationDisplay`    | `'dms'` \| `'latlon'` \| `false`       | Shows a coordinate readout near the scale bar.                              |
+| `locationSource`     | `'pointer'` \| `'centre'`              | Where to read coordinates from. `'pointer'` tracks the mouse.               |
+| `enable3DBuildings`  | boolean                                | MapLibre only: adds a 🏙 control button to toggle 3D building extrusions on/off. |
 
 ---
 
@@ -163,16 +187,18 @@ The `mojMap()` macro accepts a config object using the following keys:
 | `tile-type`              | `vector` \| `raster`                              | Optional. Set `raster` to force raster mode; default resolves to `vector` if WebGL is available. |
 | `tile-url`               | URL template                                      | Optional custom raster tile URL (`{z}/{x}/{y}`).                            |
 | `vector-url`             | URL                                               | Optional custom vector style base URL (the component appends the style path and key). |
+| `renderer`               | `openlayers` \| `maplibre`                        | Selects which rendering library to use. Default is `openlayers`.            |
 
 ### Control Attributes
 
-| Attribute              | Type / Values                                     | Default       | Description                                                                                          |
-| ---------------------- | ------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------- |
-| `rotate-control`       | `false` \| `auto-hide` \| `true` (or omit)        | `true`        | Show the rotate/compass control. `auto-hide` hides it until the map is rotated.                      |
-| `zoom-slider`          | boolean attribute (`''` to enable, `false` to disable) | not shown     | Show the zoom slider control between zoom-in and zoom-out.                                           |
-| `scale-control`        | `bar` \| `line` \| `false` (or omit)              | not shown     | `bar` shows a segmented scale bar; `line` shows a simple scale line. Omit to hide.                   |
-| `location-display`     | `dms` \| `latlon` \| `false` (or omit)            | not shown     | Show a coordinate readout near the scale bar. `dms` shows degrees/minutes/seconds; `latlon` shows decimal degrees with hemisphere suffixes. |
-| `location-source`      | `pointer` \| `centre`                              | `pointer`     | Where to read coordinates from. `pointer` updates as the mouse moves; `centre` updates on pan/zoom end. |
+| Attribute               | Type / Values                                     | Default       | Description                                                                                          |
+| ----------------------- | ------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------- |
+| `rotate-control`        | `false` \| `auto-hide` \| `true` (or omit)        | `true`        | Show the rotate/compass control. `auto-hide` hides it until the map is rotated.                      |
+| `zoom-slider`           | boolean attribute (`''` to enable, `false` to disable) | not shown     | Show the zoom slider control between zoom-in and zoom-out.                                           |
+| `scale-control`         | `bar` \| `line` \| `false` (or omit)              | not shown     | `bar` shows a segmented scale bar; `line` shows a simple scale line. Omit to hide.                   |
+| `location-display`      | `dms` \| `latlon` \| `false` (or omit)            | not shown     | Show a coordinate readout near the scale bar. `dms` shows degrees/minutes/seconds; `latlon` shows decimal degrees with hemisphere suffixes. |
+| `location-source`       | `pointer` \| `centre`                              | `pointer`     | Where to read coordinates from. `pointer` updates as the mouse moves; `centre` updates on pan/zoom end. |
+| `enable-3d-buildings`   | boolean attribute                                 | not shown     | MapLibre only: adds a 🏙 control button to toggle 3D building extrusions on/off.                      |
 
 Notes:
 - Boolean attributes follow HTML rules: presence enables, `attribute="false"` disables.
@@ -195,15 +221,19 @@ Notes:
   },
   usesInternalOverlays: true,
 
+  // Choose renderer: 'openlayers' (default) or 'maplibre'
+  renderer: 'maplibre',
+
   controls: {
     scaleControl: 'bar',          // 'bar' | 'line'
     locationDisplay: 'dms',       // 'dms' | 'latlon'
     locationSource: 'pointer',    // 'pointer' (default) | 'centre'
     rotateControl: 'auto-hide',   // 'false' | 'auto-hide' | 'true'
-    zoomSlider: true
+    zoomSlider: true,
+    enable3DBuildings: true       // MapLibre only: adds 🏙 button to toggle 3D buildings
   }
 }) }}
-```
+````
 
 ---
 
@@ -226,7 +256,7 @@ await new Promise<void>(resolve => {
 ### Or use a callback
 
 ```ts
-mojMap.addEventListener('map:ready', (event) => {
+mojMap.addEventListener('map:ready', event => {
   const mapInstance = event.detail.map
   // Do something with mapInstance
 })
@@ -265,12 +295,7 @@ To enable overlays:
 ### Example usage
 
 ```html
-<moj-map
-  points='[...]'
-  lines='[...]'
-  uses-internal-overlays
-  csp-nonce="your-csp-nonce"
-></moj-map>
+<moj-map points="[...]" lines="[...]" uses-internal-overlays csp-nonce="your-csp-nonce"></moj-map>
 
 <template id="overlay-template-location-point">
   <div>
@@ -322,16 +347,28 @@ All OpenLayers controls are inside the component’s Shadow DOM. The component e
 - CSS custom property:
   - `--moj-scale-bar-bottom`: controls the bottom offset for the scale bar and location display. Example:
     ```css
-    moj-map { --moj-scale-bar-bottom: govuk-spacing(3); }
+    moj-map {
+      --moj-scale-bar-bottom: govuk-spacing(3);
+    }
     ```
 
 - Parts exposed for overlay styling from outside the Shadow DOM:
   ```css
-  moj-map::part(app-map__overlay) { ... }
-  moj-map::part(app-map__overlay)::before { ... }
-  moj-map::part(app-map__overlay)::after { ... }
-  moj-map::part(app-map__overlay-header) { ... }
-  moj-map::part(app-map__overlay-body) { ... }
+  moj-map::part(app-map__overlay) {
+    /* styles here */
+  }
+  moj-map::part(app-map__overlay)::before {
+    /* styles here */
+  }
+  moj-map::part(app-map__overlay)::after {
+    /* styles here */
+  }
+  moj-map::part(app-map__overlay-header) {
+    /* styles here */
+  }
+  moj-map::part(app-map__overlay-body) {
+    /* styles here */
+  }
   ```
 
 You can also place the coordinate readout above it with component-scoped CSS. Adjust via `--moj-scale-bar-bottom` if needed.
@@ -345,16 +382,16 @@ By default, this component uses Ordnance Survey vector tiles. To fallback to ima
 Example Express middleware:
 
 ```ts
-  import { mojMapMiddleware } from 'hmpps-open-layers-map/tile-token-proxy'
-  
-  app.use(
-    '/tile-token-proxy',
-    mojMapMiddleware({
-      authUrl: config.maps.authUrl,
-      apiKey: config.maps.apiKey,
-      apiSecret: config.maps.apiSecret,
-    }),
-  )
+import { mojMapMiddleware } from 'hmpps-open-layers-map/tile-token-proxy'
+
+app.use(
+  '/tile-token-proxy',
+  mojMapMiddleware({
+    authUrl: config.maps.authUrl,
+    apiKey: config.maps.apiKey,
+    apiSecret: config.maps.apiSecret,
+  }),
+)
 ```
 
 Use the `access-token-url`, `tile-type="raster"`, `tile-url`, and `vector-url` attributes as needed. For local development you can stub URLs via environment variables.

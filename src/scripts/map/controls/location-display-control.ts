@@ -1,33 +1,38 @@
 import Control from 'ol/control/Control'
 import type Map from 'ol/Map'
+import { MapBrowserEvent } from 'ol'
 import { transform } from 'ol/proj'
 import { formatDMS, formatLatLon } from '../../helpers/coordinates'
 
-type Mode = 'dms' | 'latlon'            // 'latlon' = decimal lat/lon
-type Source = 'centre' | 'pointer'     // update from map centre or mouse pointer
+type Mode = 'dms' | 'latlon' // 'latlon' = decimal lat/lon
+type Source = 'centre' | 'pointer' // update from map centre or mouse pointer
 
 type Options = {
   className?: string
-  mode?: Mode                 // default: 'latlon'
-  source?: Source             // default: 'pointer'
+  mode?: Mode // default: 'latlon'
+  source?: Source // default: 'pointer'
   position?: 'bottom-center' | 'bottom-left' | 'bottom-right'
-  latLonDecimalPlaces?: number          // decimals for 'latlon' mode, default: 5
+  latLonDecimalPlaces?: number // decimals for 'latlon' mode, default: 5
 }
 
 export default class LocationDisplayControl extends Control {
   private el: HTMLDivElement
+
   private mapRef?: Map
+
   private mode: Mode
+
   private source: Source
+
   private latLonDecimalPlaces: number
 
   private static readonly PROJ_IN = 'EPSG:3857'
+
   private static readonly PROJ_OUT = 'EPSG:4326'
 
   constructor(opts: Options = {}) {
     const el = document.createElement('div')
-    el.className =
-      (opts.className ?? 'moj-map__location-dms') + ' ol-unselectable ol-control'
+    el.className = `${opts.className ?? 'moj-map__location-dms'} ol-unselectable ol-control`
     super({ element: el })
 
     this.el = el
@@ -57,21 +62,13 @@ export default class LocationDisplayControl extends Control {
     if (!this.mapRef) return
     const centre = this.mapRef.getView().getCenter()
     if (!centre) return
-    const [lon, lat] = transform(
-      centre,
-      LocationDisplayControl.PROJ_IN,
-      LocationDisplayControl.PROJ_OUT
-    )
+    const [lon, lat] = transform(centre, LocationDisplayControl.PROJ_IN, LocationDisplayControl.PROJ_OUT)
     this.el.textContent = this.format(lat, lon)
   }
 
-  private onPointerMove = (evt: any) => {
+  private onPointerMove = (evt: MapBrowserEvent<PointerEvent | KeyboardEvent | WheelEvent>) => {
     if (!evt?.coordinate) return
-    const [lon, lat] = transform(
-      evt.coordinate,
-      LocationDisplayControl.PROJ_IN,
-      LocationDisplayControl.PROJ_OUT
-    )
+    const [lon, lat] = transform(evt.coordinate, LocationDisplayControl.PROJ_IN, LocationDisplayControl.PROJ_OUT)
     this.el.textContent = this.format(lat, lon)
   }
 

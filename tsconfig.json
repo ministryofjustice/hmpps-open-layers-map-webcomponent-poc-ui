@@ -14,7 +14,8 @@
     "skipLibCheck": true,
     "paths": {
       "@scripts/*": ["scripts/*"]
-    }
+    },
+    "types": ["jest", "@testing-library/jest-dom"]
   },
-  "include": ["src"]
+  "include": ["src", "jest.setup.ts"]
 }

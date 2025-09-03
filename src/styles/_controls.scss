@@ -1,14 +1,14 @@
-@import "govuk-frontend/dist/govuk/settings/all";
-@import "govuk-frontend/dist/govuk/tools/all";
-@import "govuk-frontend/dist/govuk/helpers/all";
+@import 'govuk-frontend/dist/govuk/settings/all';
+@import 'govuk-frontend/dist/govuk/tools/all';
+@import 'govuk-frontend/dist/govuk/helpers/all';
 
 :host {
   --moj-scale-bar-bottom: #{govuk-spacing(4)};
 }
 
-:host[type=button]:not(:disabled),
-:host[type=reset]:not(:disabled),
-:host[type=submit]:not(:disabled),
+:host[type='button']:not(:disabled),
+:host[type='reset']:not(:disabled),
+:host[type='submit']:not(:disabled),
 :host button:not(:disabled) {
   cursor: pointer;
 }
@@ -20,12 +20,12 @@
 }
 
 :host .ol-control button {
-    @include govuk-font(19, $weight: bold);
+  @include govuk-font(19, $weight: bold);
   font-family: $govuk-font-family;
   line-height: 1;
-  background-color: govuk-colour("black");
-  color: govuk-colour("white");
-  border: 1px solid govuk-colour("white");
+  background-color: govuk-colour('black');
+  color: govuk-colour('white');
+  border: 1px solid govuk-colour('white');
   border-radius: 0;
   width: 2em;
   height: 2em;
@@ -33,13 +33,16 @@
   padding: 0;
   margin: 0;
   box-shadow: none;
-  transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out, border-color 0.1s ease-in-out;
+  transition:
+    background-color 0.1s ease-in-out,
+    color 0.1s ease-in-out,
+    border-color 0.1s ease-in-out;
 }
 
-:host .ol-control button:hover, 
+:host .ol-control button:hover,
 :host .ol-control button:focus {
   text-decoration: none;
-  outline: 1px solid govuk-colour("white");
+  outline: 1px solid govuk-colour('white');
 }
 
 :host(.has-zoom-slider) .ol-zoom .ol-zoom-out {
@@ -87,16 +90,16 @@
 
 :host .ol-scale-text {
   @include govuk-font(16);
-  color: govuk-colour("black");
+  color: govuk-colour('black');
 }
 
 :host .ol-scale-step-text {
   @include govuk-font(14);
-  color: govuk-colour("black");
+  color: govuk-colour('black');
 }
 
 :host .ol-scale-singlebar-even {
-  background-color: govuk-colour("black");
+  background-color: govuk-colour('black');
 }
 
 /* coordinates */
@@ -110,4 +113,34 @@
   padding: 2px 6px;
   border-radius: 4px;
   white-space: nowrap;
+}
+
+/* MapLibre controls */
+
+// Active state (extrusion toggled on)
+:host .maplibregl-ctrl button.active {
+  background-color: govuk-colour('mid-grey');
+  color: govuk-colour('white');
+}
+
+:host .maplibregl-ctrl button.active:hover,
+:host .maplibregl-ctrl button.active:focus {
+  background-color: govuk-colour('dark-grey');
+  color: govuk-colour('white');
+  outline: 1px solid govuk-colour('white');
+}
+
+// Disabled state
+:host .maplibregl-ctrl button:disabled {
+  background-color: govuk-colour('light-grey');
+  color: govuk-colour('mid-grey');
+  border-color: govuk-colour('mid-grey');
+  cursor: not-allowed;
+}
+
+:host .maplibregl-ctrl button:disabled:hover,
+:host .maplibregl-ctrl button:disabled:focus {
+  background-color: govuk-colour('light-grey');
+  color: govuk-colour('mid-grey');
+  outline: none;
 }

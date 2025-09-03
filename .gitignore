@@ -1,15 +1,22 @@
 # Build output
 dist/
 
-# Sass output
-src/moj-map.raw.css
-src/moj-map.raw.css.map
+# Generated Sass output
+src/styles/moj-map.raw.css
+src/styles/moj-map.raw.css.map
 
 # Node dependencies
 node_modules/
 
-# IDEs
+# Lint / tooling caches
+.eslintcache
+
+# Test coverage
+coverage/
+
+# IDEs / OS
 .vscode/
 .DS_Store
 
+# Env files
 .env

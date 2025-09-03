@@ -10,12 +10,9 @@ import config from '../config'
 export const ordnanceSurveyImageTileLoader = (token: string) => {
   return (tile: OlTile, src: string) => {
     const imageTile = tile as ImageTile
-    axios
-      .get(src, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob',
-      })
-      .then((response) => {
+    return axios
+      .get(src, { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' })
+      .then(response => {
         const image = imageTile.getImage()
         if (image instanceof HTMLImageElement) {
           const url = URL.createObjectURL(response.data)
@@ -52,8 +49,6 @@ export class OrdnanceSurveyImageTileLayer extends TileLayer<XYZ> {
   }
 }
 
-export function isImageTileLayer(
-  layer: BaseLayer,
-): layer is OrdnanceSurveyImageTileLayer {
+export function isImageTileLayer(layer: BaseLayer): layer is OrdnanceSurveyImageTileLayer {
   return layer instanceof OrdnanceSurveyImageTileLayer
 }
