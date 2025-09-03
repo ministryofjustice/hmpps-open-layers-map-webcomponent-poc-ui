@@ -93,7 +93,11 @@
     "govuk-frontend": ">=5"
   },
   "peerDependenciesMeta": {
-    "ol": { "optional": false },
-    "govuk-frontend": { "optional": false }
+    "ol": {
+      "optional": false
+    },
+    "govuk-frontend": {
+      "optional": false
+    }
   }
 }
