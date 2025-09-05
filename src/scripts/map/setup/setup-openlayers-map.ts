@@ -84,5 +84,24 @@ export async function setupOpenLayersMap(
     map.addInteraction(new MapPointerInteraction())
   }
 
+  // Add MapLibre-style grab / grabbing cursor
+  if (options.controls?.grabCursor !== false) {
+    const viewport = map.getViewport()
+    viewport.style.cursor = 'grab'
+
+    viewport.addEventListener('pointerdown', () => {
+      viewport.style.cursor = 'grabbing'
+    })
+
+    viewport.addEventListener('pointerup', () => {
+      viewport.style.cursor = 'grab'
+    })
+
+    // Reset when the pointer leaves the map
+    viewport.addEventListener('pointerleave', () => {
+      viewport.style.cursor = 'grab'
+    })
+  }
+
   return map
 }
