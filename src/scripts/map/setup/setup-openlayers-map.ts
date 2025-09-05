@@ -15,6 +15,7 @@ export async function setupOpenLayersMap(
     vectorUrl: string
     usesInternalOverlays: boolean
     overlayEl?: HTMLElement | null
+    grabCursor?: boolean
   },
 ): Promise<OLMapInstance> {
   let accessToken = ''
@@ -76,6 +77,25 @@ export async function setupOpenLayersMap(
 
     const pointerInteraction = new LocationPointerInteraction(featureOverlay)
     map.addInteraction(pointerInteraction)
+  }
+
+  // Add MapLibre-style grab / grabbing cursor
+  if (options.controls?.grabCursor !== false) {
+    const viewport = map.getViewport()
+    viewport.style.cursor = 'grab'
+
+    viewport.addEventListener('pointerdown', () => {
+      viewport.style.cursor = 'grabbing'
+    })
+
+    viewport.addEventListener('pointerup', () => {
+      viewport.style.cursor = 'grab'
+    })
+
+    // Reset when the pointer leaves the map
+    viewport.addEventListener('pointerleave', () => {
+      viewport.style.cursor = 'grab'
+    })
   }
 
   return map

@@ -17,6 +17,7 @@ export interface OLMapOptions {
   overlays?: Overlay[]
   interactions?: Interaction[]
   controls?: {
+    grabCursor?: boolean
     rotate?: boolean | { autoHide?: boolean }
     zoomSlider?: boolean
     scaleControl?: 'bar' | 'line'

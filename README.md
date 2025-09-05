@@ -138,7 +138,8 @@ The `<moj-map>` component can be rendered using either:
     scaleControl: "bar",
     locationDisplay: "latlon",
     rotateControl: "true",
-    zoomSlider: true
+    zoomSlider: true,
+    grabCursor: false,
   }
 }) }}
 
@@ -150,6 +151,7 @@ The `mojMap()` macro accepts a config object using the following keys:
 
 | Parameter               | Type / Values                                     | Description                                                                 |
 |-------------------------|---------------------------------------------------|-----------------------------------------------------------------------------|
+| `grabCursor`            | boolean                                           | If true (default), uses MapLibre-style `grab` / `grabbing` mouse cursor while panning. |
 | `points`                | Array                                             | Optional array of point features.                                           |
 | `lines`                 | Array                                             | Optional array of line features.                                            |
 | `usesInternalOverlays`  | boolean                                           | If true, enables built-in overlay and pointer interaction.                  |
@@ -163,6 +165,7 @@ The `mojMap()` macro accepts a config object using the following keys:
 
 | Parameter            | Type / Values                         | Description                                                                 |
 |----------------------|----------------------------------------|-----------------------------------------------------------------------------|
+| `grab-cursor`        | boolean attribute (`''` to enable, `false` to disable) | shown by default | Enables MapLibre-style `grab` / `grabbing` cursor while dragging the map. Disable to fall back to browser defaults. |
 | `rotateControl`      | `true` \| `'auto-hide'` \| `false`     | Show the rotate/compass control. `'auto-hide'` hides it unless rotated.     |
 | `zoomSlider`         | boolean                                | If true, shows the zoom slider.                                             |
 | `scaleControl`       | `'bar'` \| `'line'` \| `false`         | If defined, shows a scale bar or line.                                      |
@@ -230,6 +233,7 @@ Notes:
     locationSource: 'pointer',    // 'pointer' (default) | 'centre'
     rotateControl: 'auto-hide',   // 'false' | 'auto-hide' | 'true'
     zoomSlider: true,
+    grabCursor: false,
     enable3DBuildings: true       // MapLibre only: adds 🏙 button to toggle 3D buildings
   }
 }) }}

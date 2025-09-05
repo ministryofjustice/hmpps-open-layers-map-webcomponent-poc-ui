@@ -41,4 +41,10 @@ map.setAttribute('rotate-control', 'true')
 map.setAttribute('zoom-slider', 'true')
 // Enables zoom slider control
 
+map.setAttribute('grab-cursor', 'true')
+// Enables MapLibre-style grab/grabbing cursor
+// Options:
+//   'true' (default) → show grab/grabbing cursor
+//   'false'          → disable custom cursor, fallback to browser default
+
 document.body.appendChild(map)

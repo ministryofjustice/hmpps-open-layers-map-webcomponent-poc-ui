@@ -151,6 +151,7 @@ export class MojMap extends HTMLElement {
     const locationDisplay = (this.getAttribute('location-display') as 'dms' | 'latlon' | null) ?? undefined
     const locationDisplaySource = (this.getAttribute('location-source') as 'centre' | 'pointer' | null) ?? undefined
     const zoomSlider = parseBool('zoom-slider')
+    const grabCursor = parseBool('grab-cursor')
 
     this.classList.toggle('has-rotate-control', rotateOpt !== false)
     this.classList.toggle('has-zoom-slider', zoomSlider)
@@ -158,6 +159,7 @@ export class MojMap extends HTMLElement {
     this.classList.toggle('has-location-dms', locationDisplay === 'dms')
 
     return {
+      grabCursor,
       rotate: rotateOpt,
       zoomSlider,
       scaleControl,
