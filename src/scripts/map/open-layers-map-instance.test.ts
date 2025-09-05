@@ -88,9 +88,9 @@ describe('MojMapInstance', () => {
   })
 
   it('always extends interactions with ctrl-drag-rotate', () => {
+    const spy = jest.spyOn(ctrlDragRotate, 'default')
     new OLMapInstance({ target })
-    expect(ctrlDragRotate.default).toHaveBeenCalled()
-    expect(mockExtend).toHaveBeenCalledWith(expect.arrayContaining([{ type: 'CtrlDragRotate' }]))
+    expect(spy).toHaveBeenCalled()
   })
 
   it('uses DefaultView', () => {

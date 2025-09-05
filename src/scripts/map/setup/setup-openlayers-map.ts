@@ -9,7 +9,7 @@ import config from '../config'
 export async function setupOpenLayersMap(
   mapContainer: HTMLElement,
   options: OLMapOptions & {
-    tileType: 'vector' | 'raster'
+    tileType?: 'vector' | 'raster'
     tokenUrl: string
     tileUrl: string
     vectorUrl: string
@@ -37,9 +37,13 @@ export async function setupOpenLayersMap(
     controls: options.controls,
   })
 
-  if (options.tileType === 'vector') {
+  const appliedTileType = options.tileType || 'vector'
+
+  if (appliedTileType === 'vector') {
     if (!apiKey) {
       console.warn('[moj-map] No API key configured in .env. Falling back to image tiles.')
+      const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
+      map.addLayer(rasterLayer)
     } else {
       const vectorLayer = new OrdnanceSurveyVectorTileLayer()
       try {
@@ -51,9 +55,7 @@ export async function setupOpenLayersMap(
         map.addLayer(rasterLayer)
       }
     }
-  }
-
-  if (options.tileType === 'raster') {
+  } else if (appliedTileType === 'raster') {
     const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
     map.addLayer(rasterLayer)
 
