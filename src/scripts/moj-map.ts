@@ -1,4 +1,5 @@
 import maplibreCss from 'maplibre-gl/dist/maplibre-gl.css?raw'
+import type { FeatureCollection } from 'geojson'
 import { OLMapOptions } from './map/open-layers-map-instance'
 import { setupOpenLayersMap } from './map/setup/setup-openlayers-map'
 import { setupMapLibreMap } from './map/setup/setup-maplibre-map'
@@ -36,6 +37,8 @@ export class MojMap extends HTMLElement {
 
   private featureOverlay?: FeatureOverlay
 
+  private geoJson: FeatureCollection | null = null
+
   constructor() {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -44,6 +47,7 @@ export class MojMap extends HTMLElement {
   async connectedCallback() {
     this.mapNonce = getMapNonce(this)
     this.render()
+    this.geoJson = this.parseGeoJsonFromSlot()
     await this.initialiseMap()
     this.dispatchEvent(
       new CustomEvent('map:ready', {
@@ -51,28 +55,6 @@ export class MojMap extends HTMLElement {
         bubbles: true,
       }),
     )
-  }
-
-  public get points(): unknown[] | [] {
-    const points = this.getAttribute('points')
-    if (!points) return []
-    try {
-      return JSON.parse(points)
-    } catch {
-      console.warn('Invalid JSON in points attribute')
-      return []
-    }
-  }
-
-  public get lines(): unknown[] | [] {
-    const lines = this.getAttribute('lines')
-    if (!lines) return []
-    try {
-      return JSON.parse(lines)
-    } catch {
-      console.warn('Invalid JSON in lines attribute')
-      return []
-    }
   }
 
   public closeOverlay() {
@@ -103,6 +85,19 @@ export class MojMap extends HTMLElement {
       tileUrl,
       vectorUrl,
     }
+  }
+
+  private parseGeoJsonFromSlot(): FeatureCollection | null {
+    const script = this.querySelector('script[type="application/json"][slot="geojson-data"]')
+    if (script && script.textContent) {
+      try {
+        return JSON.parse(script.textContent) as FeatureCollection
+      } catch (e) {
+        console.warn('Invalid GeoJSON passed to <moj-map>', e)
+        return null
+      }
+    }
+    return null
   }
 
   private async initialiseMap() {

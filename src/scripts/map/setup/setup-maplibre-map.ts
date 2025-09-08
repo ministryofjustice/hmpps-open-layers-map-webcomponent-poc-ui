@@ -14,7 +14,6 @@ export async function setupMapLibreMap(
     target,
     styleUrl,
     enable3DControls,
-    maxPitch: 60,
     minZoom: 6,
     maxZoom: 18,
     zoom: 15,
