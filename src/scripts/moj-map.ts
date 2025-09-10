@@ -1,5 +1,6 @@
 import maplibreCss from 'maplibre-gl/dist/maplibre-gl.css?raw'
 import type { FeatureCollection } from 'geojson'
+
 import { OLMapOptions } from './map/open-layers-map-instance'
 import { setupOpenLayersMap } from './map/setup/setup-openlayers-map'
 import { setupMapLibreMap } from './map/setup/setup-maplibre-map'
@@ -7,17 +8,18 @@ import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
 import config from './map/config'
 import FeatureOverlay from './map/overlays/feature-overlay'
 
+import { type MapAdapter, type MapLibrary, createOpenLayersAdapter, createMapLibreAdapter } from './map/map-adapter'
+
 import styles from '../styles/moj-map.raw.css?raw'
 
 type TileType = 'vector' | 'raster'
-type MapRenderer = 'openlayers' | 'maplibre'
 
 type MojMapControls = OLMapOptions['controls'] & {
   enable3DBuildings?: boolean
 }
 
 type MojMapOptions = {
-  renderer: MapRenderer
+  renderer: MapLibrary
   tokenUrl: string
   tileType: TileType
   points?: string
@@ -31,13 +33,15 @@ type MojMapOptions = {
 export class MojMap extends HTMLElement {
   private mapNonce: string | null = null
 
-  private map!: unknown
+  private adapter?: MapAdapter
 
   private shadow: ShadowRoot
 
   private featureOverlay?: FeatureOverlay
 
   private geoJson: FeatureCollection | null = null
+
+  public map!: unknown
 
   constructor() {
     super()
@@ -49,6 +53,7 @@ export class MojMap extends HTMLElement {
     this.render()
     this.geoJson = this.parseGeoJsonFromSlot()
     await this.initialiseMap()
+
     this.dispatchEvent(
       new CustomEvent('map:ready', {
         detail: { map: this.map },
@@ -63,7 +68,7 @@ export class MojMap extends HTMLElement {
 
   private parseAttributes(): MojMapOptions {
     const rendererAttr = this.getAttribute('renderer')
-    const renderer: MapRenderer = rendererAttr === 'maplibre' ? 'maplibre' : 'openlayers'
+    const renderer: MapLibrary = rendererAttr === 'maplibre' ? 'maplibre' : 'openlayers'
     const tileType = this.getAttribute('tile-type') as TileType
     const userTokenUrl = this.getAttribute('access-token-url')
     const tileUrlAttr = this.getAttribute('tile-url')
@@ -71,7 +76,6 @@ export class MojMap extends HTMLElement {
 
     const tileUrl = tileUrlAttr && tileUrlAttr.trim() !== '' ? tileUrlAttr : config.tiles.urls.tileUrl
     const vectorUrl = vectorUrlAttr && vectorUrlAttr.trim() !== '' ? vectorUrlAttr : config.tiles.urls.vectorUrl
-
     const tokenUrl = tileType === 'raster' ? userTokenUrl || config.tiles.defaultTokenUrl : userTokenUrl || 'none'
 
     return {
@@ -110,6 +114,7 @@ export class MojMap extends HTMLElement {
         options.vectorUrl,
         this.getControlOptions().enable3DBuildings ?? false,
       )
+      this.adapter = createMapLibreAdapter(this, this.map as import('maplibre-gl').Map)
     } else {
       const overlayCandidate = this.shadow.querySelector('.app-map__overlay')
       const overlayEl = overlayCandidate instanceof HTMLElement ? overlayCandidate : null
@@ -124,6 +129,7 @@ export class MojMap extends HTMLElement {
         overlayEl,
         controls: this.getControlOptions(),
       })
+      this.adapter = createOpenLayersAdapter(this, this.map as import('ol/Map').default)
     }
   }
 
