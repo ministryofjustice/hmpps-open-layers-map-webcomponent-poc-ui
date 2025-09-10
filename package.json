@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.6.07",
+  "version": "0.6.33",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
@@ -38,8 +38,12 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.iife.js"
+      "import": "./dist/index.es.js"
+    },
+    "./adapters": {
+      "types": "./dist/types/adapters/index.d.ts",
+      "import": "./dist/adapters/index.js",
+      "require": "./dist/adapters/index.js"
     },
     "./tile-token-proxy": {
       "types": "./dist/types/scripts/tile-token-proxy/index.d.ts",

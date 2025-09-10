@@ -1,8 +1,8 @@
 import { setupOpenLayersMap } from './setup-openlayers-map'
 import { OLMapInstance } from '../open-layers-map-instance'
+import MapPointerInteraction from '../interactions/map-pointer-interaction'
 
 jest.mock('../open-layers-map-instance')
-
 jest.mock('../config', () => ({
   apiKey: 'fake-key',
   tiles: {
@@ -11,28 +11,21 @@ jest.mock('../config', () => ({
     defaultTokenUrl: 'http://fake-token',
   },
 }))
-
-jest.mock('ol-mapbox-style', () => ({
-  applyStyle: jest.fn(),
-}))
-
+jest.mock('ol-mapbox-style', () => ({ applyStyle: jest.fn() }))
 jest.mock('ol/layer/VectorTile', () => {
-  return jest.fn().mockImplementation(() => ({
-    setSource: jest.fn(),
-  }))
+  return jest.fn().mockImplementation(() => ({ setSource: jest.fn() }))
 })
 
 const MockedOLMapInstance = OLMapInstance as jest.MockedClass<typeof OLMapInstance>
 
-const mockViewport = document.createElement('div')
-
+const addInteraction = jest.fn()
 MockedOLMapInstance.mockImplementation(
   () =>
     ({
-      getViewport: () => mockViewport,
+      getViewport: jest.fn(() => document.createElement('div')),
       addLayer: jest.fn(),
       addOverlay: jest.fn(),
-      addInteraction: jest.fn(),
+      addInteraction,
     }) as unknown as OLMapInstance,
 )
 
@@ -42,10 +35,9 @@ describe('setupOpenLayersMap', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     target = document.createElement('div')
-    mockViewport.style.cursor = ''
   })
 
-  it('applies grab cursor by default', async () => {
+  it('adds MapPointerInteraction by default', async () => {
     await setupOpenLayersMap(target, {
       target,
       tokenUrl: 'none',
@@ -55,10 +47,12 @@ describe('setupOpenLayersMap', () => {
       usesInternalOverlays: false,
       controls: {},
     })
-    expect(mockViewport.style.cursor).toBe('grab')
+
+    expect(addInteraction).toHaveBeenCalled()
+    expect(addInteraction.mock.calls[0][0]).toBeInstanceOf(MapPointerInteraction)
   })
 
-  it('respects grabCursor = false', async () => {
+  it('does not add MapPointerInteraction when grabCursor = false', async () => {
     await setupOpenLayersMap(target, {
       target,
       tokenUrl: 'none',
@@ -68,6 +62,7 @@ describe('setupOpenLayersMap', () => {
       usesInternalOverlays: false,
       controls: { grabCursor: false } as any,
     })
-    expect(mockViewport.style.cursor).toBe('')
+
+    expect(addInteraction).not.toHaveBeenCalledWith(expect.any(MapPointerInteraction))
   })
 })

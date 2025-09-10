@@ -1,6 +1,6 @@
 import Point from 'ol/geom/Point'
 import Feature from 'ol/Feature'
-import LocationPointerInteraction from './location-pointer-interaction'
+import FeaturePointerInteraction from './feature-pointer-interaction'
 
 jest.mock('ol/interaction/Pointer', () => {
   class MockPointerInteraction {
@@ -36,9 +36,9 @@ jest.mock('ol/geom/Point', () => {
   }
 })
 
-describe('LocationPointerInteraction', () => {
+describe('FeaturePointerInteraction', () => {
   let overlay: { showAtCoordinate: jest.Mock; close: jest.Mock }
-  let interaction: LocationPointerInteraction
+  let interaction: FeaturePointerInteraction
   let mapMock: any
   let targetEl: HTMLElement
 
@@ -47,7 +47,7 @@ describe('LocationPointerInteraction', () => {
       showAtCoordinate: jest.fn(),
       close: jest.fn(),
     }
-    interaction = new LocationPointerInteraction(overlay)
+    interaction = new FeaturePointerInteraction(overlay)
 
     targetEl = document.createElement('div')
     mapMock = {

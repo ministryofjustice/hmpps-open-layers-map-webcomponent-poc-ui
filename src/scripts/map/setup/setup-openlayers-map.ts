@@ -1,7 +1,7 @@
 import { OLMapInstance, OLMapOptions } from '../open-layers-map-instance'
 import { OrdnanceSurveyImageTileLayer, isImageTileLayer } from '../layers/ordnance-survey-image'
 import { OrdnanceSurveyVectorTileLayer } from '../layers/ordnance-survey-vector'
-import LocationPointerInteraction from '../interactions/location-pointer-interaction'
+import { FeaturePointerInteraction, MapPointerInteraction } from '../interactions'
 import FeatureOverlay from '../overlays/feature-overlay'
 import { startTokenRefresh, fetchAccessToken } from '../token-refresh'
 import config from '../config'
@@ -75,27 +75,13 @@ export async function setupOpenLayersMap(
     const featureOverlay = new FeatureOverlay(options.overlayEl)
     map.addOverlay(featureOverlay)
 
-    const pointerInteraction = new LocationPointerInteraction(featureOverlay)
-    map.addInteraction(pointerInteraction)
+    // Add interaction for overlay features
+    map.addInteraction(new FeaturePointerInteraction(featureOverlay))
   }
 
-  // Add MapLibre-style grab / grabbing cursor
   if (options.controls?.grabCursor !== false) {
-    const viewport = map.getViewport()
-    viewport.style.cursor = 'grab'
-
-    viewport.addEventListener('pointerdown', () => {
-      viewport.style.cursor = 'grabbing'
-    })
-
-    viewport.addEventListener('pointerup', () => {
-      viewport.style.cursor = 'grab'
-    })
-
-    // Reset when the pointer leaves the map
-    viewport.addEventListener('pointerleave', () => {
-      viewport.style.cursor = 'grab'
-    })
+    // Add interaction for grab/grabbing cursor
+    map.addInteraction(new MapPointerInteraction())
   }
 
   return map
