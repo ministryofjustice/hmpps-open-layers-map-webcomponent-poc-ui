@@ -77,6 +77,8 @@ export async function setupOpenLayersMap(
 
     // Add interaction for overlay features
     map.addInteraction(new FeaturePointerInteraction(featureOverlay))
+    // Add interaction for overlay features
+    map.addInteraction(new FeaturePointerInteraction(featureOverlay))
   }
 
   if (options.controls?.grabCursor !== false) {
@@ -84,7 +86,6 @@ export async function setupOpenLayersMap(
     map.addInteraction(new MapPointerInteraction())
   }
 
-  // Add MapLibre-style grab / grabbing cursor
   if (options.controls?.grabCursor !== false) {
     const viewport = map.getViewport()
     viewport.style.cursor = 'grab'
