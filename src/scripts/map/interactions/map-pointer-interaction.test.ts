@@ -10,7 +10,6 @@ describe('MapPointerInteraction', () => {
 
     mapMock = {
       getViewport: jest.fn(() => viewport),
-      hasFeatureAtPixel: jest.fn(),
     }
 
     interaction = new MapPointerInteraction()
@@ -26,22 +25,14 @@ describe('MapPointerInteraction', () => {
 
   const callHandleEvent = (event: any) => interaction.handleEvent(event)
 
-  it('sets cursor to pointer when hovering over a feature', () => {
-    mapMock.hasFeatureAtPixel.mockReturnValue(true)
-    callHandleEvent(makeEvent('pointermove'))
-    expect(viewport.style.cursor).toBe('pointer')
-  })
-
-  it('sets cursor to grab when not over a feature', () => {
-    mapMock.hasFeatureAtPixel.mockReturnValue(false)
+  it('sets cursor to grab on pointermove (when not dragging)', () => {
     callHandleEvent(makeEvent('pointermove'))
     expect(viewport.style.cursor).toBe('grab')
   })
 
-  it('ignores pointermove when dragging', () => {
-    mapMock.hasFeatureAtPixel.mockReturnValue(true)
+  it('sets cursor to grabbing on pointermove when dragging', () => {
     callHandleEvent(makeEvent('pointermove', { dragging: true }))
-    expect(viewport.style.cursor).toBe('')
+    expect(viewport.style.cursor).toBe('grabbing')
   })
 
   it('sets cursor to grabbing on pointerdown', () => {

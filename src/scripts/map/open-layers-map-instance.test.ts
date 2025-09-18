@@ -1,4 +1,4 @@
-import * as olControl from 'ol/control'
+import * as olControl from 'ol/control.js'
 import { OLMapInstance } from './open-layers-map-instance'
 
 import * as locationDisplayControl from './controls/location-display-control'

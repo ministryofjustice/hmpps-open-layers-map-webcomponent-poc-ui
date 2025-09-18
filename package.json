@@ -1,11 +1,10 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.6.34",
+  "version": "0.6.47",
   "description": "A native Web Component for displaying maps using OpenLayers.",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/types/index.d.ts",
-  "type": "module",
   "publishConfig": {
     "access": "public"
   },
@@ -38,21 +37,31 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/index.es.js"
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
     },
     "./converters": {
       "types": "./dist/types/converters/index.d.ts",
-      "import": "./dist/converters/index.js",
-      "require": "./dist/converters/index.js"
+      "import": "./dist/converters/index.es.js",
+      "require": "./dist/converters/index.cjs.js"
+    },
+    "./layers": {
+      "types": "./dist/types/scripts/map/layers/index.d.ts",
+      "import": "./dist/layers/index.es.js",
+      "require": "./dist/layers/index.cjs.js"
     },
     "./tile-token-proxy": {
       "types": "./dist/types/scripts/tile-token-proxy/index.d.ts",
-      "import": "./dist/scripts/tile-token-proxy/index.js",
-      "require": "./dist/scripts/tile-token-proxy/index.js"
+      "import": "./dist/tile-token-proxy/index.es.js",
+      "require": "./dist/tile-token-proxy/index.cjs.js"
     }
   },
   "files": [
     "dist/",
+    "dist/index.*",
+    "dist/converters/",
+    "dist/scripts/map/layers/",
+    "dist/types/",
     "nunjucks/"
   ],
   "license": "MIT",

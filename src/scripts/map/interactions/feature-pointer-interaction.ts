@@ -1,6 +1,6 @@
 import Point from 'ol/geom/Point'
 import PointerInteraction from 'ol/interaction/Pointer'
-import { MapBrowserEvent } from 'ol'
+import type { MapBrowserEvent } from 'ol'
 import Feature from 'ol/Feature'
 import Geometry from 'ol/geom/Geometry'
 import type { Coordinate } from 'ol/coordinate'
@@ -38,12 +38,15 @@ export default class FeaturePointerInteraction extends PointerInteraction {
   }
 
   private handlePointerEvent(event: MapBrowserEvent<PointerEvent | KeyboardEvent | WheelEvent>): boolean {
+    const viewport = event.map.getViewport()
+
     switch (event.type) {
       case 'pointermove': {
         if (event.dragging) return true
         const feature = this.getIntersectingFeature(event)
-        const target = event.map.getTargetElement() as HTMLElement
-        target.style.cursor = feature ? 'pointer' : ''
+        // Only this interaction is allowed to set 'pointer'
+        if (feature) viewport.style.cursor = 'pointer'
+        // Do NOT reset to '' here; MapPointerInteraction will set 'grab'
         break
       }
 
@@ -78,8 +81,9 @@ export default class FeaturePointerInteraction extends PointerInteraction {
         break
       }
 
-      default:
+      default: {
         break
+      }
     }
     return true
   }

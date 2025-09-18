@@ -22,6 +22,7 @@ export async function setupOpenLayersMap(
   let expiresIn = 0
   const { apiKey } = config
 
+  // Fetch token if configured
   try {
     if (options.tokenUrl.toLowerCase() !== 'none') {
       const tokenResponse = await fetchAccessToken(options.tokenUrl)
@@ -43,8 +44,7 @@ export async function setupOpenLayersMap(
   if (appliedTileType === 'vector') {
     if (!apiKey) {
       console.warn('[moj-map] No API key configured in .env. Falling back to image tiles.')
-      const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
-      map.addLayer(rasterLayer)
+      map.addLayer(new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken))
     } else {
       const vectorLayer = new OrdnanceSurveyVectorTileLayer()
       try {
@@ -52,11 +52,10 @@ export async function setupOpenLayersMap(
         map.addLayer(vectorLayer)
       } catch (err) {
         console.warn('[moj-map] Failed to initialise vector layer. Falling back to image tiles.', err)
-        const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
-        map.addLayer(rasterLayer)
+        map.addLayer(new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken))
       }
     }
-  } else if (appliedTileType === 'raster') {
+  } else {
     const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
     map.addLayer(rasterLayer)
 
@@ -64,9 +63,7 @@ export async function setupOpenLayersMap(
       startTokenRefresh({
         tokenUrl: options.tokenUrl,
         initialExpiresIn: expiresIn,
-        onTokenUpdate: newToken => {
-          rasterLayer.updateToken(newToken)
-        },
+        onTokenUpdate: newToken => rasterLayer.updateToken(newToken),
       })
     }
   }
@@ -74,15 +71,12 @@ export async function setupOpenLayersMap(
   if (options.usesInternalOverlays && options.overlayEl instanceof HTMLElement) {
     const featureOverlay = new FeatureOverlay(options.overlayEl)
     map.addOverlay(featureOverlay)
-
-    // Add interaction for overlay features
     map.addInteraction(new FeaturePointerInteraction(featureOverlay))
     // Add interaction for overlay features
     map.addInteraction(new FeaturePointerInteraction(featureOverlay))
   }
 
   if (options.controls?.grabCursor !== false) {
-    // Add interaction for grab/grabbing cursor
     map.addInteraction(new MapPointerInteraction())
   }
 

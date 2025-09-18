@@ -1,13 +1,14 @@
 import maplibreCss from 'maplibre-gl/dist/maplibre-gl.css?raw'
 import type { FeatureCollection } from 'geojson'
+import { OLMapInstance, OLMapOptions } from './map/open-layers-map-instance'
+import { MapLibreMapInstance } from './map/maplibre-map-instance'
 
-import { OLMapOptions } from './map/open-layers-map-instance'
 import { setupOpenLayersMap } from './map/setup/setup-openlayers-map'
 import { setupMapLibreMap } from './map/setup/setup-maplibre-map'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
 import config from './map/config'
 import FeatureOverlay from './map/overlays/feature-overlay'
-
+import type { ComposableLayer, LayerPlacementOptions } from './map/layers/base'
 import { type MapAdapter, type MapLibrary, createOpenLayersAdapter, createMapLibreAdapter } from './map/map-adapter'
 
 import styles from '../styles/moj-map.raw.css?raw'
@@ -35,13 +36,15 @@ export class MojMap extends HTMLElement {
 
   private adapter?: MapAdapter
 
+  private layers = new Map<string, ComposableLayer>()
+
   private shadow: ShadowRoot
 
   private featureOverlay?: FeatureOverlay
 
   private geoJson: FeatureCollection | null = null
 
-  public map!: unknown
+  private mapInstance!: OLMapInstance | MapLibreMapInstance
 
   constructor() {
     super()
@@ -56,10 +59,50 @@ export class MojMap extends HTMLElement {
 
     this.dispatchEvent(
       new CustomEvent('map:ready', {
-        detail: { map: this.map },
+        detail: {
+          map: this.map,
+          geoJson: this.geoJson,
+        },
         bubbles: true,
+        composed: true,
       }),
     )
+  }
+
+  public get geojson(): FeatureCollection | null {
+    return this.geoJson
+  }
+
+  public get map(): unknown {
+    return this.mapInstance
+  }
+
+  public get olMapInstance(): OLMapInstance | null {
+    return this.mapInstance instanceof OLMapInstance ? this.mapInstance : null
+  }
+
+  public get maplibreMapInstance(): MapLibreMapInstance | null {
+    return this.mapInstance instanceof MapLibreMapInstance ? this.mapInstance : null
+  }
+
+  public addLayer<LNative>(layer: ComposableLayer<LNative>, placement?: LayerPlacementOptions): LNative | undefined {
+    if (!this.adapter) throw new Error('Map not ready')
+    if (this.layers.has(layer.id)) this.removeLayer(layer.id)
+    layer.attach(this.adapter, placement)
+    this.layers.set(layer.id, layer)
+    return typeof layer.getNativeLayer === 'function' ? layer.getNativeLayer() : undefined
+  }
+
+  public removeLayer(id: string) {
+    if (!this.adapter) return
+    const layer = this.layers.get(id)
+    if (!layer) return
+    layer.detach(this.adapter)
+    this.layers.delete(id)
+  }
+
+  public getLayer(id: string) {
+    return this.layers.get(id)
   }
 
   public closeOverlay() {
@@ -109,17 +152,17 @@ export class MojMap extends HTMLElement {
     const mapContainer = this.shadow.querySelector('#map') as HTMLElement
 
     if (options.renderer === 'maplibre') {
-      this.map = await setupMapLibreMap(
+      this.mapInstance = await setupMapLibreMap(
         mapContainer,
         options.vectorUrl,
         this.getControlOptions().enable3DBuildings ?? false,
       )
-      this.adapter = createMapLibreAdapter(this, this.map as import('maplibre-gl').Map)
+      this.adapter = createMapLibreAdapter(this, this.mapInstance as import('maplibre-gl').Map)
     } else {
       const overlayCandidate = this.shadow.querySelector('.app-map__overlay')
       const overlayEl = overlayCandidate instanceof HTMLElement ? overlayCandidate : null
 
-      this.map = await setupOpenLayersMap(mapContainer, {
+      this.mapInstance = await setupOpenLayersMap(mapContainer, {
         target: mapContainer,
         tileType: options.tileType,
         tokenUrl: options.tokenUrl,
@@ -129,7 +172,7 @@ export class MojMap extends HTMLElement {
         overlayEl,
         controls: this.getControlOptions(),
       })
-      this.adapter = createOpenLayersAdapter(this, this.map as import('ol/Map').default)
+      this.adapter = createOpenLayersAdapter(this, this.mapInstance as import('ol/Map').default)
     }
   }
 

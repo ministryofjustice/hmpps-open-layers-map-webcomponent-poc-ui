@@ -128,6 +128,34 @@ describe('MojMap', () => {
     expect(mojMap.map).toBeDefined()
   })
 
+  it('addLayer attaches via adapter, and removeLayer detaches', async () => {
+    const mojMap = document.createElement('moj-map') as MojMap
+
+    // Use OpenLayers Library
+    mojMap.setAttribute('renderer', 'openlayers')
+    mojMap.setAttribute('tile-type', 'vector')
+    mojMap.setAttribute('tile-url', 'https://attr-tiles')
+    mojMap.setAttribute('vector-url', 'https://attr-vector')
+    mojMap.setAttribute('access-token-url', 'none')
+
+    await new Promise<void>(resolve => {
+      mojMap.addEventListener('map:ready', () => resolve(), { once: true })
+      document.body.appendChild(mojMap)
+    })
+
+    const attach = jest.fn()
+    const detach = jest.fn()
+    const fakeLayer = { id: 'test', attach, detach }
+
+    mojMap.addLayer(fakeLayer)
+    expect(attach).toHaveBeenCalledTimes(1)
+    expect(attach.mock.calls[0][0]).toHaveProperty('mapLibrary', 'openlayers')
+
+    mojMap.removeLayer('test')
+    expect(detach).toHaveBeenCalledTimes(1)
+    expect(detach.mock.calls[0][0]).toHaveProperty('mapLibrary', 'openlayers')
+  })
+
   it('closeOverlay delegates to featureOverlay.close()', () => {
     const mojMap = new MojMap()
     const closeFn = jest.fn()
