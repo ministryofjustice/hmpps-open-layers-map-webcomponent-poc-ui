@@ -8,7 +8,7 @@ import { setupMapLibreMap } from './map/setup/setup-maplibre-map'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
 import config from './map/config'
 import FeatureOverlay from './map/overlays/feature-overlay'
-import type { ComposableLayer, LayerPlacementOptions } from './map/layers/base'
+import type { ComposableLayer, LayerStateOptions } from './map/layers/base'
 import { type MapAdapter, type MapLibrary, createOpenLayersAdapter, createMapLibreAdapter } from './map/map-adapter'
 
 import styles from '../styles/moj-map.raw.css?raw'
@@ -85,10 +85,13 @@ export class MojMap extends HTMLElement {
     return this.mapInstance instanceof MapLibreMapInstance ? this.mapInstance : null
   }
 
-  public addLayer<LNative>(layer: ComposableLayer<LNative>, placement?: LayerPlacementOptions): LNative | undefined {
+  public addLayer<LNative>(
+    layer: ComposableLayer<LNative>,
+    layerStateOptions?: LayerStateOptions,
+  ): LNative | undefined {
     if (!this.adapter) throw new Error('Map not ready')
     if (this.layers.has(layer.id)) this.removeLayer(layer.id)
-    layer.attach(this.adapter, placement)
+    layer.attach(this.adapter, layerStateOptions)
     this.layers.set(layer.id, layer)
     return typeof layer.getNativeLayer === 'function' ? layer.getNativeLayer() : undefined
   }

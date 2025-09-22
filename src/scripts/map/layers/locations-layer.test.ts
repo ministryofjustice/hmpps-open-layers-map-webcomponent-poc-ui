@@ -1,32 +1,14 @@
 import type { FeatureCollection } from 'geojson'
-import type OLMap from 'ol/Map'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import type Feature from 'ol/Feature'
 import type Geometry from 'ol/geom/Geometry'
 import { Style } from 'ol/style'
-import type { MapAdapter } from '../map-adapter'
-import { LocationLayer } from './location-layer'
+import { LocationsLayer } from './locations-layer'
+import makeOpenLayersAdapter from '../../../../tests/utils/openlayers-adapter'
 
 type OLVecSrc = VectorSource<Feature<Geometry>>
 type OLVecLayer = VectorLayer<OLVecSrc>
-
-function makeOpenLayersAdapter() {
-  const olMapMock = {
-    addLayer: jest.fn(),
-    removeLayer: jest.fn(),
-  }
-
-  const adapter: MapAdapter = {
-    mapLibrary: 'openlayers',
-    hostElement: document.createElement('div'),
-    project: lonLat => lonLat,
-    unproject: xy => xy as [number, number],
-    openlayers: { map: olMapMock as unknown as OLMap },
-  }
-
-  return { adapter, olMapMock }
-}
 
 const sampleGeoJson: FeatureCollection = {
   type: 'FeatureCollection',
@@ -61,7 +43,7 @@ describe('LocationLayer (OpenLayers library)', () => {
     }
 
     const { adapter, olMapMock } = makeOpenLayersAdapter()
-    const layer = new LocationLayer(mixed, { id: 'locations' })
+    const layer = new LocationsLayer({ geoJson: mixed, id: 'locations' })
 
     layer.attach(adapter)
 
@@ -72,7 +54,7 @@ describe('LocationLayer (OpenLayers library)', () => {
 
   it('attaches a VectorLayer with expected properties and features', () => {
     const { adapter, olMapMock } = makeOpenLayersAdapter()
-    const layer = new LocationLayer(sampleGeoJson, { id: 'locations', title: 'Locations' })
+    const layer = new LocationsLayer({ geoJson: sampleGeoJson, id: 'locations', title: 'Locations' })
 
     layer.attach(adapter)
 
@@ -92,7 +74,7 @@ describe('LocationLayer (OpenLayers library)', () => {
 
   it('respects placement options: visible=false and zIndex', () => {
     const { adapter, olMapMock } = makeOpenLayersAdapter()
-    const layer = new LocationLayer(sampleGeoJson, { id: 'locations' })
+    const layer = new LocationsLayer({ geoJson: sampleGeoJson, id: 'locations' })
 
     layer.attach(adapter, { visible: false, zIndex: 10 })
 
@@ -103,7 +85,7 @@ describe('LocationLayer (OpenLayers library)', () => {
 
   it('detaches by removing the same VectorLayer from the map', () => {
     const { adapter, olMapMock } = makeOpenLayersAdapter()
-    const layer = new LocationLayer(sampleGeoJson, { id: 'locations' })
+    const layer = new LocationsLayer({ geoJson: sampleGeoJson, id: 'locations' })
 
     layer.attach(adapter)
     const added = olMapMock.addLayer.mock.calls[0][0] as OLVecLayer
@@ -115,9 +97,10 @@ describe('LocationLayer (OpenLayers library)', () => {
     expect(removed).toBe(added)
   })
 
-  it('applies custom circle style options', () => {
+  it('applies custom circle style location options', () => {
     const { adapter, olMapMock } = makeOpenLayersAdapter()
-    const layer = new LocationLayer(sampleGeoJson, {
+    const layer = new LocationsLayer({
+      geoJson: sampleGeoJson,
       id: 'locations',
       style: { radius: 8, fill: '#0b0c0c', stroke: { color: '#ffffff', width: 1 } },
     })
