@@ -10,7 +10,8 @@ const map = document.createElement('moj-map')
 map.setAttribute('enable-3d-buildings', '')
 
 // Core setup
-map.setAttribute('vector-url', config.tiles.urls.vectorUrl)
+map.setAttribute('api-key', import.meta.env.VITE_OS_API_KEY)
+map.setAttribute('vector-url', config.tiles.urls.vectorStyleUrl)
 map.setAttribute('tile-url', config.tiles.urls.tileUrl)
 map.setAttribute('csp-nonce', '1234abcd')
 map.setAttribute('uses-internal-overlays', '')

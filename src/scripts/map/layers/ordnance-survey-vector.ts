@@ -9,17 +9,20 @@ export function resolveTileType(requested: string | null): TileType {
   return supportsWebGL() ? 'vector' : 'raster'
 }
 
+function formatVectorURL(styleBaseUrl: string, apiKey?: string): string {
+  const clean = styleBaseUrl.replace(/\/$/, '')
+  if (!apiKey) return clean
+  const url = new URL(clean, window.location.origin)
+  if (!url.searchParams.has('key')) url.searchParams.set('key', apiKey)
+  return url.toString()
+}
+
 export class OrdnanceSurveyVectorTileLayer extends VectorTileLayer {
   constructor() {
-    super({
-      declutter: true,
-    })
+    super({ declutter: true })
   }
 
-  async applyVectorStyle(apiKey: string, baseUrl: string): Promise<void> {
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '')
-    const separator = cleanBaseUrl.includes('?') ? '&' : '?'
-    const styleUrl = `${cleanBaseUrl}${separator}key=${apiKey}`
-    return applyStyle(this, styleUrl)
+  async applyVectorStyle(apiKey: string | undefined, styleBaseUrl: string): Promise<void> {
+    return applyStyle(this, formatVectorURL(styleBaseUrl, apiKey))
   }
 }

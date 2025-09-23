@@ -12,7 +12,10 @@ jest.mock('./helpers/dom', () => ({
 jest.mock('./map/config', () => ({
   default: {
     tiles: {
-      urls: { tileUrl: 'https://mock-tiles', vectorUrl: 'https://mock-vector' },
+      urls: {
+        tileUrl: 'https://mock-tiles',
+        vectorStyleUrl: 'https://mock-vector',
+      },
       defaultTokenUrl: 'https://mock-token',
     },
   },
@@ -64,6 +67,7 @@ describe('MojMap', () => {
     mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
+    mojMap.setAttribute('api-key', 'API_KEY')
 
     const ready = new Promise<void>(resolve => {
       mojMap.addEventListener('map:ready', () => resolve(), { once: true })
@@ -94,6 +98,7 @@ describe('MojMap', () => {
     mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
+    mojMap.setAttribute('api-key', 'API_KEY')
 
     const ready = new Promise<void>(resolve => {
       mojMap.addEventListener('map:ready', () => resolve(), { once: true })
@@ -103,10 +108,11 @@ describe('MojMap', () => {
     await ready
 
     expect(setupMapLibreMap).toHaveBeenCalledTimes(1)
-    const [container, vectorUrl, enable3D] = (setupMapLibreMap as jest.Mock).mock.calls[0]
+    const [container, vectorUrl, enable3D, apiKey] = (setupMapLibreMap as jest.Mock).mock.calls[0]
     expect(container instanceof HTMLElement).toBe(true)
     expect(vectorUrl).toBe('https://attr-vector')
     expect(typeof enable3D).toBe('boolean')
+    expect(apiKey).toBe('API_KEY')
   })
 
   it('fires map:ready and exposes .map', async () => {
@@ -116,6 +122,7 @@ describe('MojMap', () => {
     mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
+    mojMap.setAttribute('api-key', 'API_KEY')
 
     const ready = new Promise<unknown>(resolve => {
       mojMap.addEventListener('map:ready', e => resolve((e as CustomEvent).detail.map), { once: true })
@@ -130,13 +137,12 @@ describe('MojMap', () => {
 
   it('addLayer attaches via adapter, and removeLayer detaches', async () => {
     const mojMap = document.createElement('moj-map') as MojMap
-
-    // Use OpenLayers Library
     mojMap.setAttribute('renderer', 'openlayers')
     mojMap.setAttribute('tile-type', 'vector')
     mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
+    mojMap.setAttribute('api-key', 'API_KEY')
 
     await new Promise<void>(resolve => {
       mojMap.addEventListener('map:ready', () => resolve(), { once: true })

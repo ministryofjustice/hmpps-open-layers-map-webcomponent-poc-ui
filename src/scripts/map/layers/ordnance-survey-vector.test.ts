@@ -81,4 +81,13 @@ describe('OrdnanceSurveyVectorTileLayer', () => {
     const result = await layer.applyVectorStyle('APIKEY', 'https://tiles.os.uk/styles/os.json')
     expect(result).toBe('STYLE_APPLIED')
   })
+
+  it('does not duplicate existing key', async () => {
+    const layer = new OrdnanceSurveyVectorTileLayer()
+    await layer.applyVectorStyle('APIKEY', 'https://api.os.uk/maps/vector/v1/resources/styles?srs=3857&key=PRESENT')
+    expect(applyStyle).toHaveBeenCalledWith(
+      layer,
+      'https://api.os.uk/maps/vector/v1/resources/styles?srs=3857&key=PRESENT',
+    )
+  })
 })

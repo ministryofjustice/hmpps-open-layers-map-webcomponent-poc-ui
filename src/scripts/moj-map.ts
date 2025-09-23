@@ -23,12 +23,11 @@ type MojMapOptions = {
   renderer: MapLibrary
   tokenUrl: string
   tileType: TileType
-  points?: string
-  lines?: string
   usesInternalOverlays: boolean
   overlayTemplateId?: string
   tileUrl?: string
   vectorUrl?: string
+  apiKey?: string
 }
 
 export class MojMap extends HTMLElement {
@@ -113,27 +112,35 @@ export class MojMap extends HTMLElement {
   }
 
   private parseAttributes(): MojMapOptions {
-    const rendererAttr = this.getAttribute('renderer')
-    const renderer: MapLibrary = rendererAttr === 'maplibre' ? 'maplibre' : 'openlayers'
+    const renderer: MapLibrary = this.getAttribute('renderer') === 'maplibre' ? 'maplibre' : 'openlayers'
     const tileType = this.getAttribute('tile-type') as TileType
     const userTokenUrl = this.getAttribute('access-token-url')
     const tileUrlAttr = this.getAttribute('tile-url')
     const vectorUrlAttr = this.getAttribute('vector-url')
+    const apiKey = this.getAttribute('api-key') || undefined
 
-    const tileUrl = tileUrlAttr && tileUrlAttr.trim() !== '' ? tileUrlAttr : config.tiles.urls.tileUrl
-    const vectorUrl = vectorUrlAttr && vectorUrlAttr.trim() !== '' ? vectorUrlAttr : config.tiles.urls.vectorUrl
+    const tileUrl = tileUrlAttr && tileUrlAttr.trim() ? tileUrlAttr : config.tiles.urls.tileUrl
+    const vectorUrl = vectorUrlAttr && vectorUrlAttr.trim() ? vectorUrlAttr : config.tiles.urls.vectorStyleUrl
     const tokenUrl = tileType === 'raster' ? userTokenUrl || config.tiles.defaultTokenUrl : userTokenUrl || 'none'
+
+    if ((tileType ?? 'vector') === 'vector') {
+      const hasKeyInUrl = /\bkey=/.test(vectorUrl)
+      if (!apiKey && !hasKeyInUrl) {
+        throw new Error(
+          '[moj-map] Vector mode requires either {{mojMap apiKey: "..."> or a vector-url that already includes ?key=...',
+        )
+      }
+    }
 
     return {
       renderer,
       tileType,
       tokenUrl,
-      points: this.getAttribute('points') || undefined,
-      lines: this.getAttribute('lines') || undefined,
       usesInternalOverlays: this.hasAttribute('uses-internal-overlays'),
       overlayTemplateId: this.getAttribute('overlay-template-id') || undefined,
       tileUrl,
       vectorUrl,
+      apiKey,
     }
   }
 
@@ -157,20 +164,20 @@ export class MojMap extends HTMLElement {
     if (options.renderer === 'maplibre') {
       this.mapInstance = await setupMapLibreMap(
         mapContainer,
-        options.vectorUrl,
+        options.vectorUrl!,
         this.getControlOptions().enable3DBuildings ?? false,
+        options.apiKey,
       )
       this.adapter = createMapLibreAdapter(this, this.mapInstance as import('maplibre-gl').Map)
     } else {
-      const overlayCandidate = this.shadow.querySelector('.app-map__overlay')
-      const overlayEl = overlayCandidate instanceof HTMLElement ? overlayCandidate : null
-
+      const overlayEl = (this.shadow.querySelector('.app-map__overlay') as HTMLElement) ?? null
       this.mapInstance = await setupOpenLayersMap(mapContainer, {
         target: mapContainer,
         tileType: options.tileType,
         tokenUrl: options.tokenUrl,
         tileUrl: options.tileUrl!,
         vectorUrl: options.vectorUrl!,
+        apiKey: options.apiKey,
         usesInternalOverlays: options.usesInternalOverlays,
         overlayEl,
         controls: this.getControlOptions(),
