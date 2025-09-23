@@ -2,15 +2,15 @@ import Point from 'ol/geom/Point'
 import PointerInteraction from 'ol/interaction/Pointer'
 import { MapBrowserEvent } from 'ol'
 import Feature from 'ol/Feature'
-import { Coordinate } from 'ol/coordinate'
 import Geometry from 'ol/geom/Geometry'
+import type { Coordinate } from 'ol/coordinate'
 
 interface LocationOverlay {
   showAtCoordinate: (coord: Coordinate, properties: Record<string, unknown>) => void
   close: () => void
 }
 
-export default class LocationPointerInteraction extends PointerInteraction {
+export default class FeaturePointerInteraction extends PointerInteraction {
   private static readonly CLICK_DISTANCE_THRESHOLD = 5
 
   private overlay: LocationOverlay
@@ -22,11 +22,10 @@ export default class LocationPointerInteraction extends PointerInteraction {
       handleEvent: (event: MapBrowserEvent<PointerEvent | KeyboardEvent | WheelEvent>) =>
         this.handlePointerEvent(event),
     })
-
     this.overlay = overlay
   }
 
-  private getIntersectingLocation(
+  private getIntersectingFeature(
     event: MapBrowserEvent<PointerEvent | KeyboardEvent | WheelEvent>,
   ): Feature<Geometry> | undefined {
     const features = event.map.getFeaturesAtPixel(event.pixel)
@@ -42,9 +41,9 @@ export default class LocationPointerInteraction extends PointerInteraction {
     switch (event.type) {
       case 'pointermove': {
         if (event.dragging) return true
-        const location = this.getIntersectingLocation(event)
+        const feature = this.getIntersectingFeature(event)
         const target = event.map.getTargetElement() as HTMLElement
-        target.style.cursor = location ? 'pointer' : ''
+        target.style.cursor = feature ? 'pointer' : ''
         break
       }
 
@@ -62,13 +61,13 @@ export default class LocationPointerInteraction extends PointerInteraction {
         const dy = event.pixel[1] - this.downPixel[1]
         const distance = Math.sqrt(dx * dx + dy * dy)
 
-        if (distance < LocationPointerInteraction.CLICK_DISTANCE_THRESHOLD) {
-          const location = this.getIntersectingLocation(event)
-          const geometry = location?.getGeometry()
+        if (distance < FeaturePointerInteraction.CLICK_DISTANCE_THRESHOLD) {
+          const feature = this.getIntersectingFeature(event)
+          const geometry = feature?.getGeometry()
           const coordinate = geometry instanceof Point ? geometry.getCoordinates() : undefined
-          const properties = location?.getProperties() ?? {}
+          const properties = feature?.getProperties() ?? {}
 
-          if (location && coordinate) {
+          if (feature && coordinate) {
             this.overlay.showAtCoordinate(coordinate, properties)
           } else {
             this.overlay.close()
@@ -78,10 +77,10 @@ export default class LocationPointerInteraction extends PointerInteraction {
         this.downPixel = null
         break
       }
+
       default:
         break
     }
-
     return true
   }
 }

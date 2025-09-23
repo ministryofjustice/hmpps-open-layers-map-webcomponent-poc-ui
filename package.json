@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.5.33",
+  "version": "0.6.33",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
@@ -38,8 +38,12 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.iife.js"
+      "import": "./dist/index.es.js"
+    },
+    "./adapters": {
+      "types": "./dist/types/adapters/index.d.ts",
+      "import": "./dist/adapters/index.js",
+      "require": "./dist/adapters/index.js"
     },
     "./tile-token-proxy": {
       "types": "./dist/types/scripts/tile-token-proxy/index.d.ts",
@@ -62,14 +66,17 @@
     "superagent": "^10.2.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-typescript": "^7.27.1",
     "@ministryofjustice/eslint-config-hmpps": "^0.0.3",
     "@testing-library/jest-dom": "^6.8.0",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/superagent": "^8.1.9",
+    "babel-jest": "^30.1.2",
     "chokidar-cli": "^3.0.0",
-    "govuk-frontend": "^5.11.0",
     "eslint": "^9.34.0",
+    "govuk-frontend": "^5.11.0",
     "husky": "^9.1.7",
     "jest": "^30.1.1",
     "jest-environment-jsdom": "^30.1.1",
@@ -89,8 +96,8 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "peerDependencies": {
-    "ol": "^10.6.1",
-    "govuk-frontend": ">=5"
+    "govuk-frontend": ">=5",
+    "ol": "^10.6.1"
   },
   "peerDependenciesMeta": {
     "ol": {

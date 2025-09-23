@@ -3,8 +3,9 @@ const isCI = process.env.CI === 'true'
 
 export default {
   transform: {
-    '^.+\\.tsx?$': ['ts-jest'],
+    '^.+\\.[tj]sx?$': 'babel-jest',
   },
+  transformIgnorePatterns: ['node_modules/(?!ol|rbush|quickselect)/'],
   collectCoverageFrom: ['src/**/*.{ts,js}'],
   testMatch: ['<rootDir>/src/**/*.test.{ts,js}'],
   testEnvironment: 'jsdom',
@@ -28,6 +29,7 @@ export default {
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   setupFilesAfterEnv: ['<rootDir>/src/jest.setup.ts'],
   moduleNameMapper: {
+    '^ol/(.*)$': '<rootDir>/node_modules/ol/$1',
     '\\.(css|scss)$': 'identity-obj-proxy',
     '\\.css\\?raw$': 'jest-transform-stub',
   },

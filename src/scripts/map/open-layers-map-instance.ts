@@ -1,10 +1,13 @@
-import Map from 'ol/Map'
-import { defaults as defaultInteractions } from 'ol/interaction/defaults'
-import BaseLayer from 'ol/layer/Base'
-import Overlay from 'ol/Overlay'
-import { Interaction } from 'ol/interaction'
-import { defaults as defaultControls, Rotate, ScaleLine, ZoomSlider } from 'ol/control'
+import Map from 'ol/Map.js'
+import { defaults as defaultInteractions } from 'ol/interaction/defaults.js'
+import DragPan from 'ol/interaction/DragPan.js'
+import Collection from 'ol/Collection.js'
+import Interaction from 'ol/interaction/Interaction.js'
+import BaseLayer from 'ol/layer/Base.js'
+import Overlay from 'ol/Overlay.js'
+import { defaults as defaultControls, Rotate, ScaleLine, ZoomSlider } from 'ol/control.js'
 import LocationDisplayControl from './controls/location-display-control'
+import createDragPanWithKinetic from './interactions/drag-pan-with-kinetic'
 import createCtrlDragRotateInteraction from './interactions/ctrl-drag-rotate'
 import DefaultView from './view/default-view'
 
@@ -14,6 +17,7 @@ export interface OLMapOptions {
   overlays?: Overlay[]
   interactions?: Interaction[]
   controls?: {
+    grabCursor?: boolean
     rotate?: boolean | { autoHide?: boolean }
     zoomSlider?: boolean
     scaleControl?: 'bar' | 'line'
@@ -67,14 +71,35 @@ export class OLMapInstance extends Map {
       controls.push(new ZoomSlider())
     }
 
+    // Interactions
+
+    // Ensure defaultInteractions() is always an array—even though OL v10.6.1 types claim it
+    // returns Interaction[], in some contexts (e.g. Jest) it actually returns Collection<Interaction>,
+    // so this unwraps it if needed:
+    function normalizeInteractions(value: unknown): Interaction[] {
+      if (Array.isArray(value)) return value
+      if (value instanceof Collection) {
+        return (value as Collection<Interaction>).getArray()
+      }
+      return []
+    }
+
+    const baseInteractions = normalizeInteractions(defaultInteractions({ altShiftDragRotate: false })).filter(
+      (i: Interaction) => !(i instanceof DragPan),
+    )
+
+    const interactions = [
+      ...baseInteractions.filter((i: Interaction) => !(i instanceof DragPan)),
+      createDragPanWithKinetic(),
+      ...(options.interactions || []),
+      createCtrlDragRotateInteraction(),
+    ]
+
     super({
       target: options.target,
       layers,
       overlays: options.overlays || [],
-      interactions: defaultInteractions({ altShiftDragRotate: false }).extend([
-        ...(options.interactions || []),
-        createCtrlDragRotateInteraction(),
-      ]),
+      interactions,
       controls,
       view: new DefaultView(),
     })

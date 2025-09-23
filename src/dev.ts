@@ -4,7 +4,7 @@ import config from './scripts/map/config'
 const map = document.createElement('moj-map')
 
 // Use MapLibre (not OpenLayers)
-map.setAttribute('renderer', 'maplibre')
+// map.setAttribute('renderer', 'maplibre')
 
 // Add this so the 3D Buildings button shows up
 map.setAttribute('enable-3d-buildings', '')
@@ -40,5 +40,11 @@ map.setAttribute('rotate-control', 'true')
 
 map.setAttribute('zoom-slider', 'true')
 // Enables zoom slider control
+
+map.setAttribute('grab-cursor', 'true')
+// Enables MapLibre-style grab/grabbing cursor
+// Options:
+//   'true' (default) → show grab/grabbing cursor
+//   'false'          → disable custom cursor, fallback to browser default
 
 document.body.appendChild(map)

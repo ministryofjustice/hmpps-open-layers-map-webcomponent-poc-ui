@@ -1,6 +1,4 @@
 <moj-map
-  points="{{ params.geoData.points | dump(false) | safe }}"
-  lines="{{ params.geoData.lines | dump(false) | safe }}"
   {% if params.usesInternalOverlays %}uses-internal-overlays{% endif %}
   csp-nonce="{{ params.cspNonce }}"
   {% if params.tileType %}tile-type="{{ params.tileType }}"{% endif %}
@@ -8,25 +6,20 @@
   {% if params.vectorUrl %}vector-url="{{ params.vectorUrl }}"{% endif %}
   {% if params.tileUrl %}tile-url="{{ params.tileUrl }}"{% endif %}
   {% if params.renderer %}renderer="{{ params.renderer }}"{% endif %}
-
-  {% if params.controls.scaleControl %}
-    scale-control="{{ params.controls.scaleControl }}"
-  {% endif %}
-  {% if params.controls.zoomSlider %}
-    zoom-slider
-  {% endif %}
-
+  {% if params.controls.scaleControl %}scale-control="{{ params.controls.scaleControl }}"{% endif %}
+  {% if params.controls.zoomSlider %}zoom-slider{% endif %}
   {% if params.controls.rotateControl is defined %}
-    {% set rotateVal = params.controls.rotateControl %}
-    {% if rotateVal %}{% set rotateVal = 'true' %}{% else %}{% set rotateVal = 'false' %}{% endif %}
-    rotate-control="{{ rotateVal }}"
+    {% if params.controls.rotateControl %}
+      rotate-control="true"
+    {% else %}
+      rotate-control="false"
+    {% endif %}
   {% endif %}
+  {% if params.controls.locationDisplay %}location-display="{{ params.controls.locationDisplay }}"{% endif %}
+  {% if params.controls.enable3DBuildings %}enable-3d-buildings{% endif %}
+  {% if params.geoJson %}grab-cursor{% endif %}>
 
-  {% if params.controls.locationDisplay %}
-    location-display="{{ params.controls.locationDisplay }}"
-  {% endif %}
-
-  {% if params.controls.enable3DBuildings %}
-    enable-3d-buildings
-  {% endif %}
-></moj-map>
+  <script type="application/json" slot="geojson-data">
+    {{ params.geoJson | dump | safe }}
+  </script>
+</moj-map>

@@ -1,7 +1,7 @@
 import { OLMapInstance, OLMapOptions } from '../open-layers-map-instance'
 import { OrdnanceSurveyImageTileLayer, isImageTileLayer } from '../layers/ordnance-survey-image'
 import { OrdnanceSurveyVectorTileLayer } from '../layers/ordnance-survey-vector'
-import LocationPointerInteraction from '../interactions/location-pointer-interaction'
+import { FeaturePointerInteraction, MapPointerInteraction } from '../interactions'
 import FeatureOverlay from '../overlays/feature-overlay'
 import { startTokenRefresh, fetchAccessToken } from '../token-refresh'
 import config from '../config'
@@ -9,12 +9,13 @@ import config from '../config'
 export async function setupOpenLayersMap(
   mapContainer: HTMLElement,
   options: OLMapOptions & {
-    tileType: 'vector' | 'raster'
+    tileType?: 'vector' | 'raster'
     tokenUrl: string
     tileUrl: string
     vectorUrl: string
     usesInternalOverlays: boolean
     overlayEl?: HTMLElement | null
+    grabCursor?: boolean
   },
 ): Promise<OLMapInstance> {
   let accessToken = ''
@@ -37,9 +38,13 @@ export async function setupOpenLayersMap(
     controls: options.controls,
   })
 
-  if (options.tileType === 'vector') {
+  const appliedTileType = options.tileType || 'vector'
+
+  if (appliedTileType === 'vector') {
     if (!apiKey) {
       console.warn('[moj-map] No API key configured in .env. Falling back to image tiles.')
+      const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
+      map.addLayer(rasterLayer)
     } else {
       const vectorLayer = new OrdnanceSurveyVectorTileLayer()
       try {
@@ -51,9 +56,7 @@ export async function setupOpenLayersMap(
         map.addLayer(rasterLayer)
       }
     }
-  }
-
-  if (options.tileType === 'raster') {
+  } else if (appliedTileType === 'raster') {
     const rasterLayer = new OrdnanceSurveyImageTileLayer(options.tileUrl!, accessToken)
     map.addLayer(rasterLayer)
 
@@ -72,8 +75,13 @@ export async function setupOpenLayersMap(
     const featureOverlay = new FeatureOverlay(options.overlayEl)
     map.addOverlay(featureOverlay)
 
-    const pointerInteraction = new LocationPointerInteraction(featureOverlay)
-    map.addInteraction(pointerInteraction)
+    // Add interaction for overlay features
+    map.addInteraction(new FeaturePointerInteraction(featureOverlay))
+  }
+
+  if (options.controls?.grabCursor !== false) {
+    // Add interaction for grab/grabbing cursor
+    map.addInteraction(new MapPointerInteraction())
   }
 
   return map
