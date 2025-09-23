@@ -53,6 +53,7 @@ describe('FeaturePointerInteraction', () => {
     mapMock = {
       getFeaturesAtPixel: jest.fn(),
       getTargetElement: jest.fn(() => targetEl),
+      getViewport: jest.fn(() => targetEl),
     }
 
     jest.clearAllMocks()

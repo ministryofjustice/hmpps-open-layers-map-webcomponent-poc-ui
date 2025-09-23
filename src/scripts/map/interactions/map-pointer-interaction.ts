@@ -1,5 +1,5 @@
 import PointerInteraction from 'ol/interaction/Pointer'
-import { MapBrowserEvent } from 'ol'
+import type { MapBrowserEvent } from 'ol'
 
 export default class MapPointerInteraction extends PointerInteraction {
   constructor() {
@@ -7,20 +7,21 @@ export default class MapPointerInteraction extends PointerInteraction {
   }
 
   handleEvent(event: MapBrowserEvent<PointerEvent>): boolean {
-    const { map } = event
-    const viewport = map.getViewport()
-
-    if (event.type === 'pointermove' && !event.dragging) {
-      const hasFeature = map.hasFeatureAtPixel(event.pixel)
-      viewport.style.cursor = hasFeature ? 'pointer' : 'grab'
-    }
+    const viewport = event.map.getViewport()
 
     if (event.type === 'pointerdown') {
       viewport.style.cursor = 'grabbing'
+      return true
+    }
+
+    if (event.type === 'pointermove') {
+      viewport.style.cursor = event.dragging ? 'grabbing' : 'grab'
+      return true
     }
 
     if (event.type === 'pointerup' || event.type === 'pointerleave') {
       viewport.style.cursor = 'grab'
+      return true
     }
 
     return true

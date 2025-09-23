@@ -17,5 +17,6 @@
     },
     "types": ["jest", "@testing-library/jest-dom"]
   },
-  "include": ["src", "jest.setup.ts"]
+  "include": ["src", "jest.setup.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "jest.setup.ts"]
 }

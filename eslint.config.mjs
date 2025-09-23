@@ -11,6 +11,7 @@ export default [
       'nunjucks/**',
       'src/styles/**/*.raw.css',
       'eslint.config.{js,cjs,mjs}',
+      'babel.config.{js,cjs,mjs}',
     ],
   },
 
