@@ -53,7 +53,7 @@ export class TracksLayer implements ComposableLayer<LayerGroup> {
     }
 
     const { map } = adapter.openlayers!
-    const resolvedVisible = this.options.visible ?? true
+    const resolvedVisible = this.options.visible ?? false
     const resolvedZIndex = this.options.zIndex
 
     const group = new LayerGroup({

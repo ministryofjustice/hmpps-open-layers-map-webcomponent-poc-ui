@@ -1,58 +1,49 @@
 # hmpps-open-layers-map-webcomponent-poc-ui
 
-A native Web Component for rendering OpenLayers maps.
+A native Web Component for rendering maps with **OpenLayers** (default) or **MapLibre GL**.  
+Includes a small layer API for common overlays (locations, tracks, circles, numbering).
 
 ---
 
 ## Browser Support
 
-| Browser         | Support |
-| --------------- | ------- |
-| Chrome          |         |
-| Firefox         |         |
-| Safari          |         |
-| Edge (Chromium) |         |
-| IE11            |         |
+| Browser             | Support |
+| ------------------- | ------- |
+| Chrome (evergreen)  | ✅      |
+| Firefox (evergreen) | ✅      |
+| Safari 15+          | ✅      |
+| Edge (Chromium)     | ✅      |
+| IE11                | ❌      |
 
----
-
-## Fallback Strategy
+### Fallback Strategy
 
 This component targets modern browsers only.
 
-- IE11 is not supported due to lack of native Web Component APIs.
-- Polyfills are not recommended for IE11 due to performance and compatibility issues.
-- If legacy support is required, consider wrapping this component in a Nunjucks macro with a fallback view.
+- IE11 is **not supported** (no native Web Components).
+- Polyfilling for IE11 is **not recommended** (performance/compat issues).
+- If legacy support is required, render a fallback view from your server-side templates.
 
 ---
 
 # Getting Started with `<moj-map>`
 
-The `<moj-map>` web component provides an embeddable OpenLayers map using Ordnance Survey vector tiles by default, with optional overlays and a simple HTML templating system.
+`<moj-map>` is an embeddable map component. It uses Ordnance Survey tiles by default and provides a small, typed API for adding layers from your app code.
 
 ---
 
 ## Installation
 
-Install the component from npm:
-
 ```bash
 npm install hmpps-open-layers-map
 ```
 
----
-
-## Minimum Usage in JavaScript
-
-To ensure the component is defined, import the module in your app's JS entry point:
+Register the custom element (once, in your app entry):
 
 ```ts
 import 'hmpps-open-layers-map'
 ```
 
-This registers the `<moj-map>` custom element with the browser.
-
-In TypeScript, if your application needs to interact with the map using the OpenLayers API (e.g. to add layers or fit the view), you can optionally import the type:
+Optionally import types if you’ll interact with the map in TS:
 
 ```ts
 import { MojMap } from 'hmpps-open-layers-map'
@@ -60,43 +51,34 @@ import { MojMap } from 'hmpps-open-layers-map'
 
 ---
 
-## Minimum Usage in HTML
-
-```html
-<moj-map points="[...]" lines="[...]" csp-nonce="your-csp-nonce"></moj-map>
-```
-
----
-
 ## Using with Nunjucks
 
-You can also render the component via a Nunjucks macro:
-
-Add `node_modules/hmpps-open-layers-map/nunjucks` to your Nunjucks configuration setup, e.g.
+Configure Nunjucks to include the component’s templates:
 
 ```js
-nunjucks.configure(['*your-applications-views*', 'node_modules/hmpps-open-layers-map/nunjucks'])
+nunjucks.configure(['<your-app-views>', 'node_modules/hmpps-open-layers-map/nunjucks'])
 ```
+
+Render the element and include data:
 
 ```njk
 {% from "components/moj-map/macro.njk" import mojMap %}
 
 {{ mojMap({
   cspNonce: cspNonce,
-  geoData: {
-    points: params.geoData.points,
-    lines: params.geoData.lines
-  }
+  // Optional renderer: "openlayers" (default) or "maplibre"
+  renderer: "openlayers",
+  vectorUrl: "https://api.os.uk/maps/vector/v1/vts"
 }) }}
 ```
 
 ---
 
-## CSP Policy (Content Security Policy)
+## CSP (Content Security Policy)
 
-Your CSP should allow the relevant domains necessary for using Ordnance Survey map tiles and use a nonce.
-
-If you're using the HMPPS Typescript Template, add 'api.os.uk' and 'cdn.jsdelivr.net' to the following directives like below:
+- Inline **styles** added by the component use the `csp-nonce` attribute on `<moj-map>`. Ensure `style-src` includes `'nonce-<value>'`.
+- The `<script type="application/json">` data block **does not execute**, so it **does not** require a nonce.
+- Typical additions (OS tiles etc.) with Helmet:
 
 ```ts
 router.use(
@@ -106,7 +88,7 @@ router.use(
       directives: {
         connectSrc: ["'self'", 'api.os.uk'],
         imgSrc: ["'self'", 'api.os.uk', 'data:', 'blob:'],
-        styleSrc: ["'self'", 'cdn.jsdelivr.net', (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
+        styleSrc: ["'self'", 'cdn.jsdelivr.net', (_req, res) => `'nonce-${res.locals.cspNonce}'`],
         fontSrc: ["'self'", 'cdn.jsdelivr.net'],
         styleSrcAttr: ["'unsafe-inline'"],
       },
@@ -119,10 +101,8 @@ router.use(
 
 ## Choosing a Renderer (OpenLayers vs MapLibre)
 
-The `<moj-map>` component can be rendered using either:
-
-- **OpenLayers** (default) — good for 2D mapping and overlays.
-- **MapLibre GL** (`renderer="maplibre"`) — required if you want 3D pitch/tilt and building extrusion.
+- **OpenLayers** (default) — great for 2D overlays.
+- **MapLibre GL** (`renderer="maplibre"`) — enables tilt/3D buildings, etc.
 
 ### Example (force MapLibre)
 
@@ -131,6 +111,7 @@ The `<moj-map>` component can be rendered using either:
 
 {{ mojMap({
   cspNonce: cspNonce,
+  geoJSON: geoJSON,
   renderer: "maplibre",             // force MapLibre instead of OpenLayers
   vectorUrl: "https://api.os.uk/maps/vector/v1/vts",
   enable3DBuildings: true,          // adds the buildings toggle button if using MapLibre
@@ -241,66 +222,180 @@ Notes:
 
 ---
 
-## Accessing the Map API (e.g. to add layers)
+## Map Lifecycle (`map:ready`)
 
-Once the map has loaded, it dispatches a `map:ready` event.
-
-### Await the event
+The component fires **`map:ready`** once initialised:
 
 ```ts
+import { MojMap } from 'hmpps-open-layers-map'
+
 const mojMap = document.querySelector('moj-map') as MojMap
 
 await new Promise<void>(resolve => {
   mojMap.addEventListener('map:ready', () => resolve(), { once: true })
 })
 
-// Now safe to use mojMap.map (the OpenLayers Map instance)
+const map = mojMap.olMapInstance // OpenLayers Map (if OL renderer)
+const geoJson = mojMap.geojson // OpenLayers FeatureCollection
 ```
 
-### Or use a callback
+---
+
+## Adding Layers
+
+Import layer classes from `hmpps-open-layers-map/layers`.
+
+Each layer accepts:
+
+- `geoJson` — your `FeatureCollection`
+- `visible?: boolean` — default varies per layer (see below)
+- `zIndex?: number` — draw order (higher draws on top)
+- Other layer-specific options
+
+### Available layers
+
+- `LocationsLayer` — renders **Point** features as circles.
+- `TracksLayer` — composite layer for **LineString** data:
+  - lines (`LinesLayer`), and
+  - optional arrows (`ArrowsLayer`) indicating direction.
+- `CirclesLayer` — renders **Point** features as **Circle** geometries with radius read from a property (e.g. `"confidence"`).
+- `NumberingLayer` — paints numbers as text labels next to points.
+
+### Full example (end-to-end)
 
 ```ts
-mojMap.addEventListener('map:ready', event => {
-  const mapInstance = event.detail.map
-  // Do something with mapInstance
+import { MojMap } from 'hmpps-open-layers-map'
+import { LocationsLayer, TracksLayer, CirclesLayer, NumberingLayer } from 'hmpps-open-layers-map/layers'
+import { isEmpty } from 'ol/extent'
+
+const mojMap = document.querySelector('moj-map') as MojMap
+
+await new Promise<void>(resolve => {
+  mojMap.addEventListener('map:ready', () => resolve(), { once: true })
 })
+
+const map = mojMap.olMapInstance!
+const geoJson = mojMap.geojson
+if (!geoJson) throw new Error('No GeoJSON in <moj-map>')
+
+// 1) Locations (points)
+const locationsLayer = mojMap.addLayer(
+  new LocationsLayer({
+    geoJson,
+  }),
+)!
+
+// 2) Tracks (lines + arrows grouped together)
+const tracksLayer = mojMap.addLayer(
+  new TracksLayer({
+    geoJson,
+    visible: false,
+    lines: {},
+    arrows: { enabled: true },
+  }),
+)!
+
+// 3) Confidence circles (radius from feature property)
+const confidenceLayer = mojMap.addLayer(
+  new CirclesLayer({
+    geoJson,
+    id: 'confidence',
+    title: 'Confidence circles',
+    radiusProperty: 'confidence',
+    visible: false,
+    zIndex: 20,
+  }),
+)
+
+// 4) Numbering (labels from feature property)
+const numbersLayer = mojMap.addLayer(
+  new NumberingLayer({
+    geoJson,
+    numberProperty: 'sequenceNumber',
+    title: 'Location numbering',
+    visible: false,
+    zIndex: 30,
+  }),
+)
+
+// Fit view to locations (if any)
+const source = locationsLayer?.getSource()
+if (source) {
+  const extent = source.getExtent()
+  if (!isEmpty(extent)) {
+    map.getView().fit(extent, {
+      maxZoom: 16,
+      padding: [30, 30, 30, 30],
+      size: map.getSize(),
+    })
+  }
+}
 ```
 
----
+**Visibility defaults**
 
-## Example: Adding a Layer and Fitting to Extent
+- `LocationsLayer`: `visible: true`
+- `TracksLayer`: `visible: false`
+- `CirclesLayer`: `visible: false`
+- `NumberingLayer`: `visible: false`
 
-```ts
-mojMap.map.addLayer(locationsLayer)
+**zIndex**
 
-mojMap.map.getView().fit(locationsLayer.getSource().getExtent(), {
-  maxZoom: 16,
-  padding: [30, 30, 30, 30],
-  size: mojMap.map.getSize(),
-})
-```
+- Higher z-index draws above lower ones.
+- `TracksLayer` puts **arrows** at `zIndex + 1` so they render above lines.
 
 ---
 
-## CSS Requirements
+## Layer Reference
 
-The map must be placed inside a container that has a defined height. If the container has `height: 0` or is not sized explicitly or implicitly, OpenLayers will not render correctly.
+### `LocationsLayer(options)`
+
+- `geoJson: FeatureCollection` (required)
+- `id?: string` (default: `"locations"`)
+- `title?: string`
+- `visible?: boolean` (default: `true`)
+- `zIndex?: number`
+- `style?: { radius?: number; fill?: string; stroke?: { color?: string; width?: number } }`
+
+### `TracksLayer(options)`
+
+- `geoJson: FeatureCollection` (required)
+- `id?: string` (default: `"tracks"`)
+- `title?: string`
+- `visible?: boolean` (default: `true`)
+- `zIndex?: number` (applied to lines; arrows are `zIndex + 1`)
+- `lines?: LinesLayerOptions`
+- `arrows?: ArrowsLayerOptions & { enabled?: boolean; visible?: boolean }`
+
+> Internally creates a `LayerGroup`. `addLayer()` returns that group.
+
+### `CirclesLayer(options)`
+
+- `geoJson: FeatureCollection` (required; **Point** features)
+- `id?: string` (default: `"circles"`)
+- `title?: string`
+- `visible?: boolean` (default: `false`)
+- `zIndex?: number`
+- `radiusProperty?: string` (default: `"confidence"`)
+- `style?: ol/style/Style` (optional custom style)
+
+### `NumberingLayer(options)`
+
+- `geoJson: FeatureCollection` (required; **Point** features)
+- `id?: string` (default: `"numbering"`)
+- `title?: string`
+- `visible?: boolean` (default: `false`)
+- `zIndex?: number`
+- `numberProperty?: string` (default: `"sequenceNumber"`)
+- `font?`, `fillColor?`, `strokeColor?`, `strokeWidth?`, `offsetX?`, `offsetY?`
 
 ---
 
-## Feature Overlay Templating
+## Overlay Templating (optional)
 
-To enable overlays:
-
-1. Each feature in your `points` array must include an `overlayTemplateId` property.
-2. The page view must contain a matching `<template>` element with that ID.
-3. The map component will show the overlay when the user clicks on a matching feature.
-
-### Example usage
+If you enable internal overlays (click to open), add a `<template>` in your page and set a property like `overlayTemplateId` on features you want clickable. The component will fill `{{ ... }}` tokens with top-level properties from the feature.
 
 ```html
-<moj-map points="[...]" lines="[...]" uses-internal-overlays csp-nonce="your-csp-nonce"></moj-map>
-
 <template id="overlay-template-location-point">
   <div>
     <strong>Speed:</strong> {{ displaySpeed }}<br />
@@ -309,95 +404,75 @@ To enable overlays:
 </template>
 ```
 
-Example point feature:
+Feature example:
 
 ```json
 {
-  "overlayTemplateId": "overlay-template-location-point",
-  "displaySpeed": "12.5 km/h",
-  "displayTimestamp": "2025-07-23 12:00:00"
+  "type": "Feature",
+  "geometry": { "type": "Point", "coordinates": [-2.1, 53.5] },
+  "properties": {
+    "overlayTemplateId": "overlay-template-location-point",
+    "displaySpeed": "12.5 km/h",
+    "displayTimestamp": "2025-07-23 12:00:00"
+  }
 }
 ```
 
-- The `overlayTemplateId` determines which `<template>` to use.
-- The values inside `{{ ... }}` in the template are replaced with top-level keys from the feature object.
-- Only features with a valid `overlayTemplateId` and a matching template in the DOM will trigger overlay behavior.
-
-Note for Nunjucks: wrap the template content in `{% raw %}` to prevent token interpolation.
-
-```njk
-{% raw %}
-<template id="map-overlay-template">
-  <div>
-    <strong>Speed:</strong> {{speed}} km/h
-    <strong>Timestamp:</strong> {{recordedAt}}
-  </div>
-</template>
-{% endraw %}
-```
+If using Nunjucks, wrap the template body with `{% raw %}…{% endraw %}` to avoid server-side interpolation.
 
 ---
 
-## Styling and CSS Hooks
+## CSS Requirements
 
-All OpenLayers controls are inside the component’s Shadow DOM. The component exposes useful hooks:
+Make sure the host element has a **non-zero height**; otherwise OpenLayers can’t render.
 
-- Host CSS classes toggled by attributes:
+Some useful hooks:
+
+- Host classes toggled by attributes:
   - `.has-rotate-control`
   - `.has-zoom-slider`
   - `.has-scale-control`
-  - `.has-location-dms` (true for `location-display="dms"` or `latlon`)
-
+  - `.has-location-dms`
 - CSS custom property:
-  - `--moj-scale-bar-bottom`: controls the bottom offset for the scale bar and location display. Example:
-    ```css
-    moj-map {
-      --moj-scale-bar-bottom: govuk-spacing(3);
-    }
-    ```
+  - `--moj-scale-bar-bottom` — bottom offset for scale + location readout.
 
-- Parts exposed for overlay styling from outside the Shadow DOM:
-  ```css
-  moj-map::part(app-map__overlay) {
-    /* styles here */
-  }
-  moj-map::part(app-map__overlay)::before {
-    /* styles here */
-  }
-  moj-map::part(app-map__overlay)::after {
-    /* styles here */
-  }
-  moj-map::part(app-map__overlay-header) {
-    /* styles here */
-  }
-  moj-map::part(app-map__overlay-body) {
-    /* styles here */
-  }
-  ```
+Example:
 
-You can also place the coordinate readout above it with component-scoped CSS. Adjust via `--moj-scale-bar-bottom` if needed.
-
----
-
-## Optional: Using Raster Tiles or Supporting Fallback
-
-By default, this component uses Ordnance Survey vector tiles. To fallback to image tiles or force raster mode, configure your application to retrieve an access token from the OS Maps API.
-
-Example Express middleware:
-
-```ts
-import { mojMapMiddleware } from 'hmpps-open-layers-map/tile-token-proxy'
-
-app.use(
-  '/tile-token-proxy',
-  mojMapMiddleware({
-    authUrl: config.maps.authUrl,
-    apiKey: config.maps.apiKey,
-    apiSecret: config.maps.apiSecret,
-  }),
-)
+```css
+moj-map {
+  --moj-scale-bar-bottom: 16px;
+}
 ```
 
-Use the `access-token-url`, `tile-type="raster"`, `tile-url`, and `vector-url` attributes as needed. For local development you can stub URLs via environment variables.
+---
+
+## TypeScript: Accessing Native Layers
+
+`mojMap.addLayer()` returns the **native** OpenLayers layer instance (e.g. `VectorLayer` or `LayerGroup`) so you can toggle visibility or attach your own controls easily:
+
+```ts
+const tracksGroup = mojMap.addLayer(new TracksLayer({ geoJson, visible: false }))!
+// Later:
+tracksGroup.setVisible(true)
+```
 
 ---
+
+## Example UI Toggle
+
+```ts
+import type Layer from 'ol/layer/Layer'
+import type LayerGroup from 'ol/layer/Group'
+import { MojMap } from 'hmpps-open-layers-map'
+
+function createLayerVisibilityToggle(selector: string, layer: Layer | LayerGroup, mojMap?: MojMap) {
+  const element = document.querySelector(selector) as HTMLInputElement | null
+  if (!element) return
+
+  element.addEventListener('change', () => {
+    const visible = layer.getVisible()
+    if (visible && mojMap) mojMap.closeOverlay?.()
+    layer.setVisible(!visible)
+  })
+}
+```
