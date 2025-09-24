@@ -69,7 +69,7 @@ export class TracksLayer implements ComposableLayer<LayerGroup> {
       geoJson: this.options.geoJson,
       ...(this.options.lines ?? {}),
       id: `${this.id}-lines`,
-      title: this.options.title ?? 'tracksLayer',
+      title: this.options.lines?.title ?? 'linesLayer',
     } as LinesLayerConstructorOptions)
 
     lines.attach(adapter)
@@ -90,7 +90,7 @@ export class TracksLayer implements ComposableLayer<LayerGroup> {
         geoJson: this.options.geoJson,
         ...(this.options.arrows ?? {}),
         id: `${this.id}-arrows`,
-        title: (this.options.title ? `${this.options.title} arrows` : undefined) ?? 'arrowsLayer',
+        title: this.options.arrows?.title ?? 'arrowsLayer',
       } as ArrowsLayerConstructorOptions)
 
       arrows.attach(adapter)

@@ -1,13 +1,16 @@
 import { setupOpenLayersMap } from './setup-openlayers-map'
 import { OLMapInstance } from '../open-layers-map-instance'
+import type { OLMapOptions } from '../open-layers-map-instance'
 import MapPointerInteraction from '../interactions/map-pointer-interaction'
 
 jest.mock('../open-layers-map-instance')
 jest.mock('../config', () => ({
-  apiKey: 'fake-key',
   tiles: {
     zoom: { min: 0, max: 20 },
-    urls: { tileUrl: 'http://fake-tiles', vectorUrl: 'http://fake-vector' },
+    urls: {
+      tileUrl: 'http://fake-tiles',
+      vectorStyleUrl: 'http://fake-vector/resources/styles?srs=3857',
+    },
     defaultTokenUrl: 'http://fake-token',
   },
 }))
@@ -60,7 +63,7 @@ describe('setupOpenLayersMap', () => {
       tileUrl: '',
       vectorUrl: '',
       usesInternalOverlays: false,
-      controls: { grabCursor: false } as any,
+      controls: { grabCursor: false } as unknown as OLMapOptions['controls'],
     })
 
     expect(addInteraction).not.toHaveBeenCalledWith(expect.any(MapPointerInteraction))

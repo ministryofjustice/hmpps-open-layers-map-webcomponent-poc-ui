@@ -65,10 +65,42 @@ Render the element and include data:
 {% from "components/moj-map/macro.njk" import mojMap %}
 
 {{ mojMap({
+  apiKey: params.apiKey,
   cspNonce: cspNonce,
   // Optional renderer: "openlayers" (default) or "maplibre"
   renderer: "openlayers",
   vectorUrl: "https://api.os.uk/maps/vector/v1/vts"
+}) }}
+```
+
+---
+
+## API Key and Vector Tiles
+
+When using **vector tiles**, the Ordnance Survey API requires an access key.
+
+`<moj-map>` enforces this:
+
+- Either provide an **`apiKey`** attribute → the component will append `?key=...` to the `vectorUrl` automatically.
+- Or provide a **`vectorUrl`** that already includes `?key=YOUR_KEY`.
+
+### Example (using `apiKey`)
+
+```njk
+{{ mojMap({
+  cspNonce: cspNonce,
+  renderer: "openlayers",
+  apiKey: params.apiKey
+}) }}
+```
+
+### Example (using `vectorURL`)
+
+```njk
+{{ mojMap({
+  cspNonce: cspNonce,
+  renderer: "openlayers",
+  vectorUrl: "https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857&key=YOUR_KEY"
 }) }}
 ```
 

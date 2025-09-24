@@ -30,6 +30,8 @@ type MojMapOptions = {
   apiKey?: string
 }
 
+type OLMapInstanceWithOverlay = OLMapInstance & { featureOverlay?: FeatureOverlay }
+
 export class MojMap extends HTMLElement {
   private mapNonce: string | null = null
 
@@ -126,9 +128,7 @@ export class MojMap extends HTMLElement {
     if ((tileType ?? 'vector') === 'vector') {
       const hasKeyInUrl = /\bkey=/.test(vectorUrl)
       if (!apiKey && !hasKeyInUrl) {
-        throw new Error(
-          '[moj-map] Vector mode requires either {{mojMap apiKey: "..."> or a vector-url that already includes ?key=...',
-        )
+        console.warn('[moj-map] No apiKey and vectorUrl has no key – will fall back to raster tiles.')
       }
     }
 
@@ -183,6 +183,8 @@ export class MojMap extends HTMLElement {
         controls: this.getControlOptions(),
       })
       this.adapter = createOpenLayersAdapter(this, this.mapInstance as import('ol/Map').default)
+      const withOverlay: OLMapInstanceWithOverlay = this.mapInstance as OLMapInstanceWithOverlay
+      this.featureOverlay = withOverlay.featureOverlay
     }
   }
 

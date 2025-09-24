@@ -22,7 +22,7 @@ const config = {
     zoom: { min: 7, max: 20 },
     urls: {
       vectorStyleUrl: `${VITE_OS_MAPS_VECTOR_ROOT}/resources/styles?srs=3857`,
-      vectorSourceUrl: `${VITE_OS_MAPS_VECTOR_ROOT}/vts`, // for tests/stubs
+      vectorSourceUrl: `${VITE_OS_MAPS_VECTOR_ROOT}`,
       tileUrl: VITE_OS_MAPS_TILE_URL,
     },
     defaultTokenUrl: '/map/token',
