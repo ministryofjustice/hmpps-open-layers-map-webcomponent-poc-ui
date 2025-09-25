@@ -8,7 +8,15 @@ import { startTokenRefresh, fetchAccessToken } from '../token-refresh'
 
 type OLMapInstanceWithOverlay = OLMapInstance & { featureOverlay?: FeatureOverlay }
 
-function resolveFinalStyleUrl(
+/**
+ * Build an OS Vector style URL from provided options.
+ * - Normalises trailing slashes
+ * - Handles Cypress/localhost stubs
+ * - Prevents duplicate keys
+ * - Appends `?key=` when necessary
+ * - Returns null if there is no usable URL
+ */
+export function resolveFinalStyleUrl(
   vectorUrlFromAttr: string | undefined,
   apiKeyFromAttr: string | undefined,
 ): string | null {
@@ -33,8 +41,8 @@ function resolveFinalStyleUrl(
       return url.toString()
     }
 
-    // No key available — return as-is
-    return normalisedUrl
+    // No key available — skip OS Vector (force raster fallback)
+    return null
   }
 
   // No URL provided — fall back to config base + apiKey (if present)
@@ -79,9 +87,10 @@ export async function setupOpenLayersMap(
     controls: options.controls,
   })
 
-  const effectiveTileType = options.tileType || 'vector'
+  // Decide which tile type to apply
+  const appliedTileType = options.tileType || 'vector'
 
-  if (effectiveTileType === 'vector') {
+  if (appliedTileType === 'vector') {
     const styleUrl = resolveFinalStyleUrl(options.vectorUrl, options.apiKey)
 
     if (!styleUrl) {

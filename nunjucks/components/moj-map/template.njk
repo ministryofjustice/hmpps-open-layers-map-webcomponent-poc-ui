@@ -20,7 +20,9 @@
   {% if params.controls.enable3DBuildings %}enable-3d-buildings{% endif %}
   {% if params.geoJson %}grab-cursor{% endif %}>
 
-  <script type="application/json" slot="geojson-data">
-    {{ params.geoJson | dump | safe }}
-  </script>
+  {% if params.geoJson is defined and params.geoJson %}
+    <script type="application/json" slot="geojson-data">
+      {{ params.geoJson | dump | safe }}
+    </script>
+  {% endif %}
 </moj-map>
