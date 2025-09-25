@@ -1,16 +1,14 @@
 import type { FeatureCollection, Feature, Point, LineString } from 'geojson'
 
 export type MDSSPosition = {
-  locationRef: number
-  point: {
-    latitude: number
-    longitude: number
-  }
-  confidenceCircle: number
+  positionId: number
+  latitude: number
+  longitude: number
+  precision: number
   speed: number
   direction: number
   timestamp: string
-  geolocationMechanism: number
+  geolocationMechanism: 'GPS' | 'RF' | 'LBS' | 'WIFI'
   sequenceNumber: number
 }
 
@@ -22,14 +20,14 @@ export function mdssPositionsToGeoJson(positions: MDSSPosition[] | null | undefi
 
   const pointFeatures: Feature<Point>[] = positions.map(pos => ({
     type: 'Feature',
-    id: pos.locationRef.toString(),
+    id: pos.positionId.toString(),
     geometry: {
       type: 'Point',
-      coordinates: [pos.point.longitude, pos.point.latitude],
+      coordinates: [pos.longitude, pos.latitude],
     },
     properties: {
-      '@id': pos.locationRef.toString(),
-      confidence: pos.confidenceCircle,
+      '@id': pos.positionId.toString(),
+      confidence: pos.precision,
       speed: pos.speed,
       direction: pos.direction,
       timestamp: pos.timestamp,
@@ -45,16 +43,16 @@ export function mdssPositionsToGeoJson(positions: MDSSPosition[] | null | undefi
       const next = positions[index + 1]
       lineFeatures.push({
         type: 'Feature',
-        id: `${current.locationRef}-${next.locationRef}`,
+        id: `${current.positionId}-${next.positionId}`,
         geometry: {
           type: 'LineString',
           coordinates: [
-            [current.point.longitude, current.point.latitude],
-            [next.point.longitude, next.point.latitude],
+            [current.longitude, current.latitude],
+            [next.longitude, next.latitude],
           ],
         },
         properties: {
-          '@id': `${current.locationRef}-${next.locationRef}`,
+          '@id': `${current.positionId}-${next.positionId}`,
           direction: current.direction,
           type: 'mdss-line',
         },
