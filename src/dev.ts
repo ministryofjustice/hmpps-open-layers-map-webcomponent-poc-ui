@@ -3,6 +3,9 @@ import config from './scripts/map/config'
 
 const map = document.createElement('moj-map')
 
+const apiKey = import.meta.env.VITE_OS_API_KEY
+const signedVectorUrl = `${config.tiles.urls.vectorStyleUrl + (config.tiles.urls.vectorStyleUrl.includes('?') ? '&' : '?')}key=${apiKey}`
+
 // Use MapLibre (not OpenLayers)
 // map.setAttribute('renderer', 'maplibre')
 
@@ -10,7 +13,8 @@ const map = document.createElement('moj-map')
 map.setAttribute('enable-3d-buildings', '')
 
 // Core setup
-map.setAttribute('vector-url', config.tiles.urls.vectorUrl)
+map.setAttribute('api-key', import.meta.env.VITE_OS_API_KEY)
+map.setAttribute('vector-url', signedVectorUrl)
 map.setAttribute('tile-url', config.tiles.urls.tileUrl)
 map.setAttribute('csp-nonce', '1234abcd')
 map.setAttribute('uses-internal-overlays', '')

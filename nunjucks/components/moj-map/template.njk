@@ -5,6 +5,7 @@
   {% if params.accessTokenUrl %}access-token-url="{{ params.accessTokenUrl }}"{% endif %}
   {% if params.vectorUrl %}vector-url="{{ params.vectorUrl }}"{% endif %}
   {% if params.tileUrl %}tile-url="{{ params.tileUrl }}"{% endif %}
+  {% if params.apiKey %}api-key="{{ params.apiKey }}"{% endif %}
   {% if params.renderer %}renderer="{{ params.renderer }}"{% endif %}
   {% if params.controls.scaleControl %}scale-control="{{ params.controls.scaleControl }}"{% endif %}
   {% if params.controls.zoomSlider %}zoom-slider{% endif %}
@@ -19,7 +20,9 @@
   {% if params.controls.enable3DBuildings %}enable-3d-buildings{% endif %}
   {% if params.geoJson %}grab-cursor{% endif %}>
 
-  <script type="application/json" slot="geojson-data">
-    {{ params.geoJson | dump | safe }}
-  </script>
+  {% if params.geoJson is defined and params.geoJson %}
+    <script type="application/json" slot="geojson-data">
+      {{ params.geoJson | dump | safe }}
+    </script>
+  {% endif %}
 </moj-map>

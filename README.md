@@ -37,7 +37,7 @@ This component targets modern browsers only.
 npm install hmpps-open-layers-map
 ```
 
-Register the custom element (once, in your app entry):
+Register the custom element (once, in your clientside app entry file). E.g in typescript template it would be assets/js/index.js:
 
 ```ts
 import 'hmpps-open-layers-map'
@@ -53,7 +53,7 @@ import { MojMap } from 'hmpps-open-layers-map'
 
 ## Using with Nunjucks
 
-Configure Nunjucks to include the component’s templates:
+Configure Nunjucks to include the component’s templates. E.g in typescript template it would be server/utils/nunjucksSetup.ts:
 
 ```js
 nunjucks.configure(['<your-app-views>', 'node_modules/hmpps-open-layers-map/nunjucks'])
@@ -64,11 +64,38 @@ Render the element and include data:
 ```njk
 {% from "components/moj-map/macro.njk" import mojMap %}
 
+<div class="map-container">
+  {{ mojMap({
+    apiKey: apiKey,
+    cspNonce: cspNonce
+  }) }}
+</div>
+```
+
+---
+
+## Set a height on the element that contains the mojMap Nunjucks component (OpenLayers)
+
+If you see this message in the console, "No map visible because the map container's width or height are 0.", it means a CSS height needs to be set on the element containing the mojMap Nunjucks component. Without it, OpenLayers will not instantiate a map instance on the element.
+
+Using the example above, you could add something like
+
+```scss
+.map-container {
+  height: 450px;
+}
+```
+
+## API Key and Vector Tiles
+
+When using **vector tiles**, the Ordnance Survey API requires an access key.
+
+### Example (using `apiKey`)
+
+```njk
 {{ mojMap({
   cspNonce: cspNonce,
-  // Optional renderer: "openlayers" (default) or "maplibre"
-  renderer: "openlayers",
-  vectorUrl: "https://api.os.uk/maps/vector/v1/vts"
+  apiKey: apiKey
 }) }}
 ```
 
@@ -78,7 +105,8 @@ Render the element and include data:
 
 - Inline **styles** added by the component use the `csp-nonce` attribute on `<moj-map>`. Ensure `style-src` includes `'nonce-<value>'`.
 - The `<script type="application/json">` data block **does not execute**, so it **does not** require a nonce.
-- Typical additions (OS tiles etc.) with Helmet:
+- Typical additions (OS tiles etc.) with Helmet.
+- In typescript template it would be server/middleware/setUpWebSecurity.ts (Amend and add as appropriate):
 
 ```ts
 router.use(

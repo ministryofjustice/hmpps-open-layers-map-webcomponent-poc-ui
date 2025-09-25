@@ -11,15 +11,10 @@ export function resolveTileType(requested: string | null): TileType {
 
 export class OrdnanceSurveyVectorTileLayer extends VectorTileLayer {
   constructor() {
-    super({
-      declutter: true,
-    })
+    super({ declutter: true })
   }
 
-  async applyVectorStyle(apiKey: string, baseUrl: string): Promise<void> {
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '')
-    const separator = cleanBaseUrl.includes('?') ? '&' : '?'
-    const styleUrl = `${cleanBaseUrl}${separator}key=${apiKey}`
-    return applyStyle(this, styleUrl)
+  async applyVectorStyle(styleUrl: string): Promise<void> {
+    return applyStyle(this, styleUrl.replace(/\/$/, ''))
   }
 }

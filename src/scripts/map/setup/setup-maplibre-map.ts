@@ -1,14 +1,22 @@
 import maplibregl from 'maplibre-gl'
 import { MapLibreMapInstance } from '../maplibre-map-instance'
-import { add3DBuildingsControl } from '../controls/maplibre-3d-buildings-control'
-import config from '../config'
+
+function signIfNeeded(styleBaseUrl: string, apiKey?: string): string {
+  const clean = styleBaseUrl.replace(/\/$/, '')
+  if (!apiKey) return clean
+  const url = new URL(clean, window.location.origin)
+  if (!url.searchParams.has('key')) url.searchParams.set('key', apiKey)
+  return url.toString()
+}
 
 export async function setupMapLibreMap(
   target: HTMLElement,
   vectorUrl?: string,
   enable3DControls = false,
+  apiKey?: string,
 ): Promise<MapLibreMapInstance> {
-  const styleUrl = vectorUrl || `https://api.os.uk/maps/vector/v1/vts/resources/styles?key=${config.apiKey}`
+  const styleUrlBase = vectorUrl || 'https://api.os.uk/maps/vector/v1/resources/styles?srs=3857'
+  const styleUrl = signIfNeeded(styleUrlBase, apiKey)
 
   const map = new MapLibreMapInstance({
     target,
@@ -23,11 +31,10 @@ export async function setupMapLibreMap(
     attributionControl: false,
   })
 
-  // Built-in zoom + compass controls
   map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'top-right')
 
-  // Custom 3D controls (view + extrude buildings)
   if (enable3DControls) {
+    const { add3DBuildingsControl } = await import('../controls/maplibre-3d-buildings-control')
     add3DBuildingsControl(map)
   }
 

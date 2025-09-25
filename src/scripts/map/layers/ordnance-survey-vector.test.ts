@@ -55,30 +55,18 @@ describe('OrdnanceSurveyVectorTileLayer', () => {
   it('initialises with declutter = true', () => {
     const layer = new OrdnanceSurveyVectorTileLayer()
     expect(layer).toBeInstanceOf(OrdnanceSurveyVectorTileLayer)
-    expect(layer.get('declutter')).toBe(true) // ✅ no `as any`
+    expect(layer.get('declutter')).toBe(true)
   })
 
-  it('calls applyStyle with ?key= when no query params exist', async () => {
+  it('strips a single trailing slash before passing to applyStyle', async () => {
     const layer = new OrdnanceSurveyVectorTileLayer()
-    await layer.applyVectorStyle('APIKEY', 'https://tiles.os.uk/styles/os.json')
-    expect(applyStyle).toHaveBeenCalledWith(layer, 'https://tiles.os.uk/styles/os.json?key=APIKEY')
-  })
-
-  it('calls applyStyle with &key= when query params exist', async () => {
-    const layer = new OrdnanceSurveyVectorTileLayer()
-    await layer.applyVectorStyle('APIKEY', 'https://tiles.os.uk/styles/os.json?foo=bar')
-    expect(applyStyle).toHaveBeenCalledWith(layer, 'https://tiles.os.uk/styles/os.json?foo=bar&key=APIKEY')
-  })
-
-  it('strips trailing slash before appending', async () => {
-    const layer = new OrdnanceSurveyVectorTileLayer()
-    await layer.applyVectorStyle('APIKEY', 'https://tiles.os.uk/styles/')
-    expect(applyStyle).toHaveBeenCalledWith(layer, 'https://tiles.os.uk/styles?key=APIKEY')
+    await layer.applyVectorStyle('https://tiles.os.uk/styles/')
+    expect(applyStyle).toHaveBeenCalledWith(layer, 'https://tiles.os.uk/styles')
   })
 
   it('returns the result of applyStyle', async () => {
     const layer = new OrdnanceSurveyVectorTileLayer()
-    const result = await layer.applyVectorStyle('APIKEY', 'https://tiles.os.uk/styles/os.json')
+    const result = await layer.applyVectorStyle('https://tiles.os.uk/styles/os.json')
     expect(result).toBe('STYLE_APPLIED')
   })
 })
