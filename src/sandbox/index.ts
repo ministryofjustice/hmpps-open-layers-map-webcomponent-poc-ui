@@ -3,6 +3,7 @@ import { MojMap } from '../scripts/moj-map'
 import { CirclesLayer, LocationsLayer, NumberingLayer, TracksLayer } from '../scripts/map/layers'
 import { isEmpty } from 'ol/extent'
 import config from '../scripts/map/config'
+import '../styles/moj-map.scss'
 
 // Import some sample GeoJSON data for testing
 import emptyData from './fixtures/empty.json'

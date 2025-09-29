@@ -35,7 +35,7 @@ function createNumberingStyle(
     text: new Text({
       textAlign: 'left',
       textBaseline: 'middle',
-      font: options.font ?? 'bold 12px "Inter", system-ui, sans-serif',
+      font: options.font ?? 'bold 12px "GDS Transport", system-ui, sans-serif',
       fill: new Fill({ color: options.fillColor ?? 'black' }),
       stroke: new Stroke({
         color: options.strokeColor ?? 'white',

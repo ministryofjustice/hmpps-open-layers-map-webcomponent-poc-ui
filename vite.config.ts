@@ -1,11 +1,23 @@
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import eslint from 'vite-plugin-eslint'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const isLibMode = process.env.BUILD === 'lib'
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), eslint()],
+  plugins: [
+    tsconfigPaths(),
+    eslint(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'node_modules/govuk-frontend/dist/govuk/assets/fonts/*',
+          dest: 'assets/fonts',
+        },
+      ],
+    }),
+  ],
   root: isLibMode ? undefined : '.',
 
   build: isLibMode
