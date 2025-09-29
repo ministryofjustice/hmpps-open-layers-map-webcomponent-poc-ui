@@ -5,7 +5,7 @@ describe('mdssPositionsToGeoJson', () => {
   const positions: MDSSPosition[] = [
     {
       positionId: 1,
-      latitude: 51.5, 
+      latitude: 51.5,
       longitude: -0.1,
       precision: 30,
       speed: 5,
@@ -16,7 +16,7 @@ describe('mdssPositionsToGeoJson', () => {
     },
     {
       positionId: 2,
-      latitude: 51.6, 
+      latitude: 51.6,
       longitude: -0.2,
       precision: 40,
       speed: 10,
@@ -27,7 +27,7 @@ describe('mdssPositionsToGeoJson', () => {
     },
     {
       positionId: 3,
-      latitude: 51.7, 
+      latitude: 51.7,
       longitude: -0.3,
       precision: 50,
       speed: 15,

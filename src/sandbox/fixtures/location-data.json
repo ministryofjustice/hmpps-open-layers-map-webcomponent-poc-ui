@@ -1,0 +1,182 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "1",
+      "geometry": { "type": "Point", "coordinates": [-2.2426, 53.4808] },
+      "properties": {
+        "positionId": 1,
+        "sequenceNumber": 1,
+        "precision": 50,
+        "speed": 10,
+        "direction": 0,
+        "timestamp": "2025-09-26T10:00:00Z",
+        "geolocationMechanism": "GPS",
+        "type": "mdss-location"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "2",
+      "geometry": { "type": "Point", "coordinates": [-2.25, 53.478] },
+      "properties": {
+        "positionId": 2,
+        "sequenceNumber": 2,
+        "precision": 400,
+        "speed": 12,
+        "direction": 20,
+        "timestamp": "2025-09-26T10:01:00Z",
+        "geolocationMechanism": "GPS",
+        "type": "mdss-location"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "3",
+      "geometry": { "type": "Point", "coordinates": [-2.236, 53.483] },
+      "properties": {
+        "positionId": 3,
+        "sequenceNumber": 3,
+        "precision": 200,
+        "speed": 14,
+        "direction": 40,
+        "timestamp": "2025-09-26T10:02:00Z",
+        "geolocationMechanism": "GPS",
+        "type": "mdss-location"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "4",
+      "geometry": { "type": "Point", "coordinates": [-2.229, 53.476] },
+      "properties": {
+        "positionId": 4,
+        "sequenceNumber": 4,
+        "precision": 500,
+        "speed": 8,
+        "direction": 60,
+        "timestamp": "2025-09-26T10:03:00Z",
+        "geolocationMechanism": "GPS",
+        "type": "mdss-location"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "5",
+      "geometry": { "type": "Point", "coordinates": [-2.26, 53.485] },
+      "properties": {
+        "positionId": 5,
+        "sequenceNumber": 5,
+        "precision": 300,
+        "speed": 9,
+        "direction": 80,
+        "timestamp": "2025-09-26T10:04:00Z",
+        "geolocationMechanism": "GPS",
+        "type": "mdss-location"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "6",
+      "geometry": { "type": "Point", "coordinates": [-2.245, 53.472] },
+      "properties": {
+        "positionId": 6,
+        "sequenceNumber": 6,
+        "precision": 100,
+        "speed": 11,
+        "direction": 100,
+        "timestamp": "2025-09-26T10:05:00Z",
+        "geolocationMechanism": "GPS",
+        "type": "mdss-location"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "7",
+      "geometry": { "type": "Point", "coordinates": [-2.255, 53.49] },
+      "properties": {
+        "positionId": 7,
+        "sequenceNumber": 7,
+        "precision": 100,
+        "speed": 13,
+        "direction": 120,
+        "timestamp": "2025-09-26T10:06:00Z",
+        "geolocationMechanism": "GPS",
+        "type": "mdss-location"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "1-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-2.2426, 53.4808],
+          [-2.25, 53.478]
+        ]
+      },
+      "properties": { "type": "mdss-line", "direction": 0 }
+    },
+    {
+      "type": "Feature",
+      "id": "2-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-2.25, 53.478],
+          [-2.236, 53.483]
+        ]
+      },
+      "properties": { "type": "mdss-line", "direction": 20 }
+    },
+    {
+      "type": "Feature",
+      "id": "3-4",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-2.236, 53.483],
+          [-2.229, 53.476]
+        ]
+      },
+      "properties": { "type": "mdss-line", "direction": 40 }
+    },
+    {
+      "type": "Feature",
+      "id": "4-5",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-2.229, 53.476],
+          [-2.26, 53.485]
+        ]
+      },
+      "properties": { "type": "mdss-line", "direction": 60 }
+    },
+    {
+      "type": "Feature",
+      "id": "5-6",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-2.26, 53.485],
+          [-2.245, 53.472]
+        ]
+      },
+      "properties": { "type": "mdss-line", "direction": 80 }
+    },
+    {
+      "type": "Feature",
+      "id": "6-7",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-2.245, 53.472],
+          [-2.255, 53.49]
+        ]
+      },
+      "properties": { "type": "mdss-line", "direction": 100 }
+    }
+  ]
+}

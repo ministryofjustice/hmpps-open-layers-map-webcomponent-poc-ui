@@ -13,7 +13,7 @@ const config = {
   view: {
     zoom: { min: 5, max: 20 },
     default: {
-      zoom: 13,
+      zoom: 6,
       extent: transformExtent(ukProjectedBounds, 'EPSG:4326', 'EPSG:3857'),
       centre: fromLonLat(ukCentre),
     },
