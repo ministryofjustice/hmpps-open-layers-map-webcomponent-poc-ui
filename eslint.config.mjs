@@ -10,6 +10,7 @@ export default [
       'coverage/**',
       'nunjucks/**',
       'src/styles/**/*.raw.css',
+      'src/sandbox/**',
       'eslint.config.{js,cjs,mjs}',
       'babel.config.{js,cjs,mjs}',
     ],
@@ -33,7 +34,7 @@ export default [
     files: [
       'vite.config.{ts,js,mjs,cjs}',
       '*.config.{ts,js,mjs,cjs}',
-      'src/dev.ts',
+      'src/sandbox/index.ts',
       'src/jest.setup.ts',
       'src/**/*.test.{ts,js}',
     ],
