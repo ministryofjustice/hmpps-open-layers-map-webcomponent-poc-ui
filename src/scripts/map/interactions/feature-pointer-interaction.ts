@@ -30,7 +30,7 @@ export default class FeaturePointerInteraction extends PointerInteraction {
   ): Feature<Geometry> | undefined {
     const features = event.map.getFeaturesAtPixel(event.pixel)
     return features.find((feature): feature is Feature<Geometry> => {
-      const templateId = feature?.get('overlayTemplateId')
+      const templateId = feature?.get('overlayBodyTemplateId')
       if (!templateId || typeof templateId !== 'string') return false
       const template = document.getElementById(templateId)
       return template instanceof HTMLTemplateElement

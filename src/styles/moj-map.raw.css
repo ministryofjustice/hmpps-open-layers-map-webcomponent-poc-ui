@@ -705,23 +705,26 @@
 }
 
 .app-map__overlay {
+  cursor: default;
   position: relative;
   background-color: #ffffff;
   border: 1px solid #0b0c0c;
-  min-width: 180px;
+  min-width: 400px;
   z-index: 1;
   box-shadow: 0 2px 4px rgba(11, 12, 12, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .app-map__overlay::before {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -25px;
+  top: -25px;
   transform: translateX(-50%);
   border-width: 12px;
   border-style: solid;
-  border-color: #0b0c0c transparent transparent transparent;
+  border-color: transparent transparent #0b0c0c transparent;
   z-index: -1;
 }
 
@@ -729,32 +732,122 @@
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -21px;
+  top: -21px;
   transform: translateX(-50%);
   border-width: 11px;
   border-style: solid;
-  border-color: #ffffff transparent transparent transparent;
+  border-color: transparent transparent #ffffff transparent;
   z-index: 1;
 }
 
 .app-map__overlay-header {
   display: flex;
-  justify-content: flex-end;
-  background-color: #f3f2f1;
-  padding: 4px 8px;
-  border-bottom: 1px solid #b1b4b6;
+  justify-content: space-between;
+  align-items: flex-start;
+  background-color: #ffffff;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.app-map__overlay-title {
+  flex: 1;
+  margin-top: 5px;
+  margin-right: 10px;
 }
 
 .app-map__overlay-close {
   background: none;
   border: none;
-  font-size: 20px;
+  font-family: "GDS Transport", arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  font-size: 1.125rem;
+  line-height: 1.1111111111;
   line-height: 1;
   cursor: pointer;
+  color: #505a5f;
+}
+@media print {
+  .app-map__overlay-close {
+    font-family: sans-serif;
+  }
+}
+@media (min-width: 40.0625em) {
+  .app-map__overlay-close {
+    font-size: 1.6875rem;
+    line-height: 1.1111111111;
+  }
+}
+@media print {
+  .app-map__overlay-close {
+    font-size: 18pt;
+    line-height: 1.15;
+  }
+}
+
+.app-map__overlay-close:hover {
   color: #0b0c0c;
 }
 
 .app-map__overlay-body {
-  font-size: 16px;
-  padding: 10px;
+  font-family: "GDS Transport", arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.1428571429;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+@media print {
+  .app-map__overlay-body {
+    font-family: sans-serif;
+  }
+}
+@media (min-width: 40.0625em) {
+  .app-map__overlay-body {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+}
+@media print {
+  .app-map__overlay-body {
+    font-size: 14pt;
+    line-height: 1.2;
+  }
+}
+
+.app-map__overlay-row {
+  display: flex;
+  border-top: 1px solid #b1b4b6;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.app-map__overlay-row span {
+  flex: 0 0 50%;
+  max-width: 50%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: left;
+}
+.app-map__overlay-row span:first-child {
+  margin-right: 10px;
+}
+
+.app-map__overlay-row:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.app-map__overlay-row:nth-child(even) {
+  background-color: #f3f2f1;
 }
