@@ -20,6 +20,7 @@ export default class FeatureOverlay extends Overlay {
     content.setAttribute('part', 'app-map__overlay-body')
     header.setAttribute('part', 'app-map__overlay-header')
     title.setAttribute('part', 'app-map__overlay-title')
+    closeButton.setAttribute('part', 'app-map__overlay-close')
 
     super({
       element: container,
@@ -43,10 +44,22 @@ export default class FeatureOverlay extends Overlay {
   }
 
   private replacer(html: string, data: Record<string, unknown>) {
-    return html.replace(/{{(.*?)}}/g, (_, key) => {
+    const populated = html.replace(/{{(.*?)}}/g, (_, key) => {
       const value = data[key.trim()]
       return value !== undefined ? String(value) : ''
     })
+
+    // Add zebra-striping parts to overlay rows
+    const frag = document.createElement('div')
+    frag.innerHTML = populated
+
+    Array.from(frag.querySelectorAll('[part~="app-map__overlay-row"]')).forEach((row, index) => {
+      const isEven = (index + 1) % 2 === 0
+      const partValue = row.getAttribute('part') || ''
+      row.setAttribute('part', `${partValue} ${isEven ? 'app-map__overlay-row--even' : 'app-map__overlay-row--odd'}`)
+    })
+
+    return frag.innerHTML
   }
 
   showAtCoordinate(coordinate: Coordinate, data: Record<string, unknown>) {

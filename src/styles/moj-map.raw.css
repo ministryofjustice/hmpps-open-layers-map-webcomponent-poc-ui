@@ -704,7 +704,8 @@
   outline: none;
 }
 
-.app-map__overlay {
+.app-map__overlay,
+:host::part(app-map__overlay) {
   cursor: default;
   position: relative;
   background-color: #ffffff;
@@ -716,7 +717,8 @@
   flex-direction: column;
 }
 
-.app-map__overlay::before {
+.app-map__overlay::before,
+:host::part(app-map__overlay)::before {
   content: "";
   position: absolute;
   left: 50%;
@@ -728,7 +730,8 @@
   z-index: -1;
 }
 
-.app-map__overlay::after {
+.app-map__overlay::after,
+:host::part(app-map__overlay)::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -740,7 +743,7 @@
   z-index: 1;
 }
 
-.app-map__overlay-header {
+:host::part(app-map__overlay-header) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -751,13 +754,13 @@
   padding-right: 10px;
 }
 
-.app-map__overlay-title {
+:host::part(app-map__overlay-title) {
   flex: 1;
   margin-top: 5px;
   margin-right: 10px;
 }
 
-.app-map__overlay-close {
+:host::part(app-map__overlay-close) {
   background: none;
   border: none;
   font-family: "GDS Transport", arial, sans-serif;
@@ -771,28 +774,28 @@
   color: #505a5f;
 }
 @media print {
-  .app-map__overlay-close {
+  :host::part(app-map__overlay-close) {
     font-family: sans-serif;
   }
 }
 @media (min-width: 40.0625em) {
-  .app-map__overlay-close {
+  :host::part(app-map__overlay-close) {
     font-size: 1.6875rem;
     line-height: 1.1111111111;
   }
 }
 @media print {
-  .app-map__overlay-close {
+  :host::part(app-map__overlay-close) {
     font-size: 18pt;
     line-height: 1.15;
   }
 }
 
-.app-map__overlay-close:hover {
+:host::part(app-map__overlay-close):hover {
   color: #0b0c0c;
 }
 
-.app-map__overlay-body {
+:host::part(app-map__overlay-body) {
   font-family: "GDS Transport", arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -805,24 +808,24 @@
   padding-top: 10px;
 }
 @media print {
-  .app-map__overlay-body {
+  :host::part(app-map__overlay-body) {
     font-family: sans-serif;
   }
 }
 @media (min-width: 40.0625em) {
-  .app-map__overlay-body {
+  :host::part(app-map__overlay-body) {
     font-size: 1rem;
     line-height: 1.25;
   }
 }
 @media print {
-  .app-map__overlay-body {
+  :host::part(app-map__overlay-body) {
     font-size: 14pt;
     line-height: 1.2;
   }
 }
 
-.app-map__overlay-row {
+:host::part(app-map__overlay-row) {
   display: flex;
   border-top: 1px solid #b1b4b6;
   margin-left: 10px;
@@ -832,22 +835,30 @@
   padding-left: 10px;
   padding-right: 10px;
 }
-.app-map__overlay-row span {
+
+:host::part(app-map__overlay-row--odd) {
+  background-color: #ffffff;
+}
+
+:host::part(app-map__overlay-row--even) {
+  background-color: #f3f2f1;
+}
+
+:host::part(app-map__overlay-label) {
   flex: 0 0 50%;
   max-width: 50%;
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
   text-align: left;
-}
-.app-map__overlay-row span:first-child {
   margin-right: 10px;
 }
 
-.app-map__overlay-row:nth-child(odd) {
-  background-color: #ffffff;
-}
-
-.app-map__overlay-row:nth-child(even) {
-  background-color: #f3f2f1;
+:host::part(app-map__overlay-value) {
+  flex: 0 0 50%;
+  max-width: 50%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: left;
 }
