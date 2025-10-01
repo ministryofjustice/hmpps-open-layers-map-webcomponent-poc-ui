@@ -1,4 +1,4 @@
-import { Stroke, Style } from "ol/style"
+import { Stroke, Style } from 'ol/style'
 
 class LineStyle extends Style {
   constructor(width: number) {
