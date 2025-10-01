@@ -1,4 +1,5 @@
-.app-map__overlay {
+.app-map__overlay,
+:host::part(app-map__overlay) {
   cursor: default;
   position: relative;
   background-color: govuk-colour('white');
@@ -10,7 +11,8 @@
   flex-direction: column;
 }
 
-.app-map__overlay::before {
+.app-map__overlay::before,
+:host::part(app-map__overlay)::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -22,7 +24,8 @@
   z-index: -1;
 }
 
-.app-map__overlay::after {
+.app-map__overlay::after,
+:host::part(app-map__overlay)::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -34,7 +37,7 @@
   z-index: 1;
 }
 
-.app-map__overlay-header {
+:host::part(app-map__overlay-header) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -45,13 +48,13 @@
   @include govuk-responsive-padding(2, 'right');
 }
 
-.app-map__overlay-title {
+:host::part(app-map__overlay-title) {
   flex: 1;
   @include govuk-responsive-margin(1, 'top');
   @include govuk-responsive-margin(2, 'right');
 }
 
-.app-map__overlay-close {
+:host::part(app-map__overlay-close) {
   background: none;
   border: none;
   @include govuk-font($size: 27);
@@ -60,11 +63,11 @@
   color: govuk-colour('dark-grey');
 }
 
-.app-map__overlay-close:hover {
+:host::part(app-map__overlay-close):hover {
   color: govuk-colour('black');
 }
 
-.app-map__overlay-body {
+:host::part(app-map__overlay-body) {
   @include govuk-font($size: 16);
   max-height: 400px;
   overflow-y: auto;
@@ -72,7 +75,7 @@
   @include govuk-responsive-padding(2, 'top');
 }
 
-.app-map__overlay-row {
+:host::part(app-map__overlay-row) {
   display: flex;
   border-top: 1px solid $govuk-border-colour;
 
@@ -82,25 +85,31 @@
   @include govuk-responsive-padding(1, 'bottom');
   @include govuk-responsive-padding(2, 'left');
   @include govuk-responsive-padding(2, 'right');
-
-  span {
-    flex: 0 0 50%;
-    max-width: 50%;
-    white-space: normal;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    text-align: left;
-  }
-
-  span:first-child {
-    @include govuk-responsive-margin(2, 'right');
-  }
 }
 
-.app-map__overlay-row:nth-child(odd) {
+:host::part(app-map__overlay-row--odd) {
   background-color: govuk-colour('white');
 }
 
-.app-map__overlay-row:nth-child(even) {
+:host::part(app-map__overlay-row--even) {
   background-color: govuk-colour('light-grey');
+}
+
+:host::part(app-map__overlay-label) {
+  flex: 0 0 50%;
+  max-width: 50%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: left;
+  @include govuk-responsive-margin(2, 'right');
+}
+
+:host::part(app-map__overlay-value) {
+  flex: 0 0 50%;
+  max-width: 50%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: left;
 }
