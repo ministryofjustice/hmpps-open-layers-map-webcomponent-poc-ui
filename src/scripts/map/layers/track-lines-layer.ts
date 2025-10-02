@@ -3,8 +3,8 @@ import VectorSource from 'ol/source/Vector'
 import Feature, { FeatureLike } from 'ol/Feature'
 import { Coordinate } from 'ol/coordinate'
 import { Style } from 'ol/style'
-import { calculateAngleOfInclination, calculateInterpolatedCoordinate } from '@scripts/helpers/geometry'
 import { LineString } from 'ol/geom'
+import { calculateAngleOfInclination, calculateInterpolatedCoordinate } from '../../helpers/geometry'
 import LineStyle from '../styles/line'
 import { createLineStringFeatureCollectionFromPositions } from '../features/line-string'
 import Position from '../types/position'
@@ -40,7 +40,7 @@ const getLineSegmentStyles = (feature: FeatureLike, resolution: number): Array<S
   return [new LineStyle(resolution), ...getArrowStyles(start, rotation, magnitude, resolution)]
 }
 
-export class TrackLinesLayer extends VectorLayer {
+export class TrackLinesLayer extends VectorLayer<VectorSource<Feature<LineString>>> {
   constructor(positions: Array<Position>) {
     super({
       source: new VectorSource({ features: createLineStringFeatureCollectionFromPositions(positions) }),
