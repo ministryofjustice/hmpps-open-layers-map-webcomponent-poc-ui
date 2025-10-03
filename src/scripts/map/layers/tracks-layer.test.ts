@@ -1,26 +1,7 @@
-import LayerGroup from 'ol/layer/Group'
+import { Layer } from 'ol/layer'
 import { TracksLayer } from './tracks-layer'
 import makeOpenLayersAdapter from '../../../../tests/utils/openlayers-adapter'
-import { Layer } from 'ol/layer'
 import Position from '../types/position'
-
-jest.mock('./lines-layer', () => {
-  const linesConstructor = jest.fn().mockImplementation(() => ({
-    attach: jest.fn(),
-    detach: jest.fn(),
-    getNativeLayer: jest.fn(() => ({ type: 'mock-lines-layer' })),
-  }))
-  return { LinesLayer: linesConstructor }
-})
-
-jest.mock('./arrows-layer', () => {
-  const arrowsConstructor = jest.fn().mockImplementation(() => ({
-    attach: jest.fn(),
-    detach: jest.fn(),
-    getNativeLayer: jest.fn(() => ({ type: 'mock-arrows-layer' })),
-  }))
-  return { ArrowsLayer: arrowsConstructor }
-})
 
 const samplePositions: Array<Position> = []
 
