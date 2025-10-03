@@ -1,6 +1,7 @@
-import ArrowStyle from '../styles/arrow'
-import LineStyle from '../styles/line'
-import { TrackLinesLayer } from './track-lines-layer'
+import { Style } from 'ol/style'
+import ArrowStyle from '../../styles/arrow'
+import LineStyle from '../../styles/line'
+import { OLTracksLayer } from './tracks-layer'
 
 const positions = [
   {
@@ -29,14 +30,14 @@ const positions = [
   },
 ]
 
-describe('TrackLinesLayer (OpenLayers library)', () => {
+describe('OLTracksLayer (OpenLayers library)', () => {
   it('should display a single line and arrow for each line segment when the resolution is large', () => {
     const resolution = 1500
-    const layer = new TrackLinesLayer(positions)
+    const layer = new OLTracksLayer(positions, '', true, 1)
     const source = layer.getSource()
     const features = source?.getFeatures() || []
     const styleFunction = layer.getStyleFunction()!
-    const featureStyles = features.map(feature => styleFunction(feature, resolution))
+    const featureStyles = features.map(feature => styleFunction(feature, resolution)) as Array<Array<Style>>
 
     expect(featureStyles).toHaveLength(5)
     expect(featureStyles[0]).toHaveLength(2)
@@ -56,13 +57,13 @@ describe('TrackLinesLayer (OpenLayers library)', () => {
     expect(featureStyles[4][1]).toBeInstanceOf(ArrowStyle)
   })
 
-  it('should display a single line and multiple arrows for each line segment when the resolution is small', () => {
+  it('should display a single line and one or more arrows for each line segment when the resolution is small', () => {
     const resolution = 3
-    const layer = new TrackLinesLayer(positions)
+    const layer = new OLTracksLayer(positions, '', true, 1)
     const source = layer.getSource()
     const features = source?.getFeatures() || []
     const styleFunction = layer.getStyleFunction()!
-    const featureStyles = features.map(feature => styleFunction(feature, resolution))
+    const featureStyles = features.map(feature => styleFunction(feature, resolution)) as Array<Array<Style>>
 
     expect(featureStyles).toHaveLength(5)
     expect(featureStyles[0]).toHaveLength(3)
@@ -87,5 +88,17 @@ describe('TrackLinesLayer (OpenLayers library)', () => {
     expect(featureStyles[4][0]).toBeInstanceOf(LineStyle)
     expect(featureStyles[4][1]).toBeInstanceOf(ArrowStyle)
     expect(featureStyles[4][2]).toBeInstanceOf(ArrowStyle)
+  })
+
+  it('should make the layer visible', () => {
+    const layer = new OLTracksLayer(positions, '', true, 1)
+
+    expect(layer.getVisible()).toBeTruthy()
+  })
+
+  it('should make the layer hidden', () => {
+    const layer = new OLTracksLayer(positions, '', false, 1)
+
+    expect(layer.getVisible()).toBeFalsy()
   })
 })

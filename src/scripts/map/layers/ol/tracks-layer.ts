@@ -4,11 +4,11 @@ import Feature, { FeatureLike } from 'ol/Feature'
 import { Coordinate } from 'ol/coordinate'
 import { Style } from 'ol/style'
 import { LineString } from 'ol/geom'
-import { calculateAngleOfInclination, calculateInterpolatedCoordinate } from '../../helpers/geometry'
-import LineStyle from '../styles/line'
-import { createLineStringFeatureCollectionFromPositions } from '../features/line-string'
-import Position from '../types/position'
-import ArrowStyle from '../styles/arrow'
+import { calculateAngleOfInclination, calculateInterpolatedCoordinate } from '../../../helpers/geometry'
+import LineStyle from '../../styles/line'
+import { createLineStringFeatureCollectionFromPositions } from '../../features/line-string'
+import Position from '../../types/position'
+import ArrowStyle from '../../styles/arrow'
 
 const getArrowStyles = (start: Coordinate, rotation: number, magnitude: number, resolution: number): Array<Style> => {
   const baseIntervalDistance = 50
@@ -40,14 +40,16 @@ const getLineSegmentStyles = (feature: FeatureLike, resolution: number): Array<S
   return [new LineStyle(resolution), ...getArrowStyles(start, rotation, magnitude, resolution)]
 }
 
-export class TrackLinesLayer extends VectorLayer<VectorSource<Feature<LineString>>> {
-  constructor(positions: Array<Position>) {
+export class OLTracksLayer extends VectorLayer<VectorSource<Feature<LineString>>> {
+  constructor(positions: Array<Position>, title: string, visible: boolean, zIndex: number | undefined) {
     super({
+      properties: {
+        title,
+      },
       source: new VectorSource({ features: createLineStringFeatureCollectionFromPositions(positions) }),
       style: getLineSegmentStyles,
-      properties: {
-        title: 'trackLinesLayer',
-      },
+      visible,
+      zIndex,
     })
   }
 }
