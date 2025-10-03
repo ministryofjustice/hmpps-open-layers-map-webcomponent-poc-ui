@@ -41,7 +41,7 @@ const getLineSegmentStyles = (feature: FeatureLike, resolution: number): Array<S
 }
 
 export class OLTracksLayer extends VectorLayer<VectorSource<Feature<LineString>>> {
-  constructor(positions: Array<Position>, title: string, visible: boolean, zIndex: number | undefined) {
+  constructor(positions: Array<Position>, title: string, visible: boolean, zIndex?: number) {
     super({
       properties: {
         title,
