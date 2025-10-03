@@ -22,6 +22,18 @@ describe('dom helpers', () => {
       const slot = overlay?.querySelector('slot[name="overlay"]')
       expect(slot).toBeInstanceOf(HTMLSlotElement)
     })
+
+    it('creates an overlay header with title container', () => {
+      const frag = createMapDOM()
+      const overlay = frag.querySelector('.app-map__overlay') as HTMLElement
+
+      const header = overlay.querySelector('.app-map__overlay-header')
+      expect(header).toBeInstanceOf(HTMLElement)
+
+      const title = overlay.querySelector('.app-map__overlay-title')
+      expect(title).toBeInstanceOf(HTMLElement)
+      expect(title?.textContent).toBe('') // should start empty
+    })
   })
 
   describe('createScopedStyle', () => {

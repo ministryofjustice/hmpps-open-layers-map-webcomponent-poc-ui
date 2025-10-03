@@ -108,7 +108,7 @@ describe('FeaturePointerInteraction', () => {
         getGeometry: jest.Mock
       }
       f.get.mockImplementation((key: string) => {
-        if (key === 'overlayTemplateId') return 'tpl2'
+        if (key === 'overlayBodyTemplateId') return 'tpl2'
         return undefined
       })
       f.getProperties.mockReturnValue({ foo: 'bar' })

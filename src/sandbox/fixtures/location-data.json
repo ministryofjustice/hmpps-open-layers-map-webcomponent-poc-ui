@@ -6,6 +6,8 @@
       "id": "1",
       "geometry": { "type": "Point", "coordinates": [-2.2426, 53.4808] },
       "properties": {
+        "overlayBodyTemplateId": "overlay-body-test-location",
+        "overlayTitleTemplateId": "overlay-title-test-location",
         "positionId": 1,
         "sequenceNumber": 1,
         "precision": 50,
@@ -21,6 +23,8 @@
       "id": "2",
       "geometry": { "type": "Point", "coordinates": [-2.25, 53.478] },
       "properties": {
+        "overlayBodyTemplateId": "overlay-body-test-location",
+        "overlayTitleTemplateId": "overlay-title-test-location",
         "positionId": 2,
         "sequenceNumber": 2,
         "precision": 400,
@@ -36,6 +40,8 @@
       "id": "3",
       "geometry": { "type": "Point", "coordinates": [-2.236, 53.483] },
       "properties": {
+        "overlayBodyTemplateId": "overlay-body-test-location",
+        "overlayTitleTemplateId": "overlay-title-test-location",
         "positionId": 3,
         "sequenceNumber": 3,
         "precision": 200,
@@ -51,6 +57,8 @@
       "id": "4",
       "geometry": { "type": "Point", "coordinates": [-2.229, 53.476] },
       "properties": {
+        "overlayBodyTemplateId": "overlay-body-test-location",
+        "overlayTitleTemplateId": "overlay-title-test-location",
         "positionId": 4,
         "sequenceNumber": 4,
         "precision": 500,
@@ -66,6 +74,8 @@
       "id": "5",
       "geometry": { "type": "Point", "coordinates": [-2.26, 53.485] },
       "properties": {
+        "overlayBodyTemplateId": "overlay-body-test-location",
+        "overlayTitleTemplateId": "overlay-title-test-location",
         "positionId": 5,
         "sequenceNumber": 5,
         "precision": 300,
@@ -81,6 +91,8 @@
       "id": "6",
       "geometry": { "type": "Point", "coordinates": [-2.245, 53.472] },
       "properties": {
+        "overlayBodyTemplateId": "overlay-body-test-location",
+        "overlayTitleTemplateId": "overlay-title-test-location",
         "positionId": 6,
         "sequenceNumber": 6,
         "precision": 100,
@@ -96,6 +108,8 @@
       "id": "7",
       "geometry": { "type": "Point", "coordinates": [-2.255, 53.49] },
       "properties": {
+        "overlayBodyTemplateId": "overlay-body-test-location",
+        "overlayTitleTemplateId": "overlay-title-test-location",
         "positionId": 7,
         "sequenceNumber": 7,
         "precision": 100,

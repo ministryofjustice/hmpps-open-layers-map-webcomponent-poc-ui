@@ -24,7 +24,8 @@ type MojMapOptions = {
   tokenUrl: string
   tileType: TileType
   usesInternalOverlays: boolean
-  overlayTemplateId?: string
+  overlayBodyTemplateId?: string
+  overlayTitleTemplateId?: string
   tileUrl?: string
   vectorUrl?: string
   apiKey?: string
@@ -137,7 +138,8 @@ export class MojMap extends HTMLElement {
       tileType,
       tokenUrl,
       usesInternalOverlays: this.hasAttribute('uses-internal-overlays'),
-      overlayTemplateId: this.getAttribute('overlay-template-id') || undefined,
+      overlayBodyTemplateId: this.getAttribute('overlay-body-template-id') || undefined,
+      overlayTitleTemplateId: this.getAttribute('overlay-title-template-id') || undefined,
       tileUrl,
       vectorUrl,
       apiKey,
