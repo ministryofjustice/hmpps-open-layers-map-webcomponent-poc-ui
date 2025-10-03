@@ -4,7 +4,6 @@ export { LinesLayer } from './lines-layer'
 export { ArrowsLayer } from './arrows-layer'
 export { TracksLayer } from './tracks-layer'
 export { NumberingLayer } from './numbering-layer'
-export { TrackLinesLayer } from './track-lines-layer'
 
 export type { LocationsLayerOptions } from './locations-layer'
 export type { CirclesLayerOptions } from './circles-layer'
