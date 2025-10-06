@@ -37,7 +37,7 @@ describe('OLLocationsLayer (OpenLayers library)', () => {
         fill: '#fff',
         radius: 10,
         stroke: {
-          colour: '#000',
+          color: '#000',
           width: 1,
         },
       },

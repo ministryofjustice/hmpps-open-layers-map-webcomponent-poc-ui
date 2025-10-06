@@ -11,7 +11,7 @@ type OLLocationsLayerStyle = {
   fill: string
   radius: number
   stroke: {
-    colour: string
+    color: string
     width: number
   }
 }
@@ -26,14 +26,14 @@ type OLLocationsLayerOptions = {
 
 const DEFAULT_RADIUS = 6
 const DEFAULT_FILL = '#d4351c'
-const DEFAULT_STROKE_COLOUR = '#505a5f'
+const DEFAULT_STROKE_COLOR = '#505a5f'
 const DEFAULT_STROKE_WIDTH = 2
 const DEFAULT_VISIBILITY = false
 const DEFAULT_STYLE: OLLocationsLayerStyle = {
   fill: DEFAULT_FILL,
   radius: DEFAULT_RADIUS,
   stroke: {
-    colour: DEFAULT_STROKE_COLOUR,
+    color: DEFAULT_STROKE_COLOR,
     width: DEFAULT_STROKE_WIDTH,
   },
 }
@@ -58,7 +58,7 @@ export class OLLocationsLayer extends VectorLayer<VectorSource<Feature<Point>>> 
           radius: style.radius,
           fill: new Fill({ color: style.fill }),
           stroke: new Stroke({
-            color: style.stroke.colour,
+            color: style.stroke.color,
             width: style.stroke.width,
           }),
         }),
