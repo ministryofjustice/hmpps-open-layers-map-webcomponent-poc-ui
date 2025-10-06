@@ -710,7 +710,7 @@
   position: relative;
   background-color: #ffffff;
   border: 1px solid #0b0c0c;
-  min-width: 400px;
+  min-width: 420px;
   z-index: 1;
   box-shadow: 0 2px 4px rgba(11, 12, 12, 0.1);
   display: flex;
@@ -743,6 +743,7 @@
   z-index: 1;
 }
 
+.app-map__overlay-header,
 :host::part(app-map__overlay-header) {
   display: flex;
   justify-content: space-between;
@@ -754,12 +755,15 @@
   padding-right: 10px;
 }
 
+.app-map__overlay-title,
 :host::part(app-map__overlay-title) {
+  font-size: 18px;
   flex: 1;
   margin-top: 5px;
   margin-right: 10px;
 }
 
+.app-map__overlay-close,
 :host::part(app-map__overlay-close) {
   background: none;
   border: none;
@@ -774,27 +778,31 @@
   color: #505a5f;
 }
 @media print {
+  .app-map__overlay-close,
   :host::part(app-map__overlay-close) {
     font-family: sans-serif;
   }
 }
 @media (min-width: 40.0625em) {
+  .app-map__overlay-close,
   :host::part(app-map__overlay-close) {
     font-size: 1.6875rem;
     line-height: 1.1111111111;
   }
 }
 @media print {
+  .app-map__overlay-close,
   :host::part(app-map__overlay-close) {
     font-size: 18pt;
     line-height: 1.15;
   }
 }
-
+.app-map__overlay-close:hover,
 :host::part(app-map__overlay-close):hover {
   color: #0b0c0c;
 }
 
+.app-map__overlay-body,
 :host::part(app-map__overlay-body) {
   font-family: "GDS Transport", arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -808,23 +816,27 @@
   padding-top: 10px;
 }
 @media print {
+  .app-map__overlay-body,
   :host::part(app-map__overlay-body) {
     font-family: sans-serif;
   }
 }
 @media (min-width: 40.0625em) {
+  .app-map__overlay-body,
   :host::part(app-map__overlay-body) {
     font-size: 1rem;
     line-height: 1.25;
   }
 }
 @media print {
+  .app-map__overlay-body,
   :host::part(app-map__overlay-body) {
     font-size: 14pt;
     line-height: 1.2;
   }
 }
 
+.app-map__overlay-row,
 :host::part(app-map__overlay-row) {
   display: flex;
   border-top: 1px solid #b1b4b6;
@@ -836,28 +848,28 @@
   padding-right: 10px;
 }
 
-:host::part(app-map__overlay-row--odd) {
+.app-map__overlay-row:nth-child(odd) {
   background-color: #ffffff;
 }
 
-:host::part(app-map__overlay-row--even) {
+.app-map__overlay-row:nth-child(even) {
   background-color: #f3f2f1;
 }
 
+.app-map__overlay-label,
 :host::part(app-map__overlay-label) {
   flex: 0 0 50%;
   max-width: 50%;
-  white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
   text-align: left;
   margin-right: 10px;
 }
 
+.app-map__overlay-value,
 :host::part(app-map__overlay-value) {
   flex: 0 0 50%;
   max-width: 50%;
-  white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
   text-align: left;

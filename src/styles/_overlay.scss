@@ -4,7 +4,7 @@
   position: relative;
   background-color: govuk-colour('white');
   border: 1px solid govuk-colour('black');
-  min-width: 400px;
+  min-width: 420px;
   z-index: 1;
   box-shadow: 0 2px 4px rgba(govuk-colour('black'), 0.1);
   display: flex;
@@ -37,6 +37,7 @@
   z-index: 1;
 }
 
+.app-map__overlay-header,
 :host::part(app-map__overlay-header) {
   display: flex;
   justify-content: space-between;
@@ -48,12 +49,15 @@
   @include govuk-responsive-padding(2, 'right');
 }
 
+.app-map__overlay-title,
 :host::part(app-map__overlay-title) {
+  font-size: 18px;
   flex: 1;
   @include govuk-responsive-margin(1, 'top');
   @include govuk-responsive-margin(2, 'right');
 }
 
+.app-map__overlay-close,
 :host::part(app-map__overlay-close) {
   background: none;
   border: none;
@@ -61,12 +65,13 @@
   line-height: 1;
   cursor: pointer;
   color: govuk-colour('dark-grey');
+
+  &:hover {
+    color: govuk-colour('black');
+  }
 }
 
-:host::part(app-map__overlay-close):hover {
-  color: govuk-colour('black');
-}
-
+.app-map__overlay-body,
 :host::part(app-map__overlay-body) {
   @include govuk-font($size: 16);
   max-height: 400px;
@@ -75,6 +80,7 @@
   @include govuk-responsive-padding(2, 'top');
 }
 
+.app-map__overlay-row,
 :host::part(app-map__overlay-row) {
   display: flex;
   border-top: 1px solid $govuk-border-colour;
@@ -87,28 +93,28 @@
   @include govuk-responsive-padding(2, 'right');
 }
 
-:host::part(app-map__overlay-row--odd) {
+.app-map__overlay-row:nth-child(odd) {
   background-color: govuk-colour('white');
 }
 
-:host::part(app-map__overlay-row--even) {
+.app-map__overlay-row:nth-child(even) {
   background-color: govuk-colour('light-grey');
 }
 
+.app-map__overlay-label,
 :host::part(app-map__overlay-label) {
   flex: 0 0 50%;
   max-width: 50%;
-  white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
   text-align: left;
   @include govuk-responsive-margin(2, 'right');
 }
 
+.app-map__overlay-value,
 :host::part(app-map__overlay-value) {
   flex: 0 0 50%;
   max-width: 50%;
-  white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
   text-align: left;
