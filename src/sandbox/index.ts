@@ -93,7 +93,7 @@ map.addEventListener('map:ready', () => {
     new TracksLayer({
       title: 'tracksLayer',
       visible: true,
-      geoJson,
+      positions: [],
     }),
   )
 
