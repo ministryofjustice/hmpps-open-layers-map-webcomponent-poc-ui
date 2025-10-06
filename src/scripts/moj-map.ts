@@ -12,6 +12,7 @@ import type { ComposableLayer, LayerStateOptions } from './map/layers/base'
 import { type MapAdapter, type MapLibrary, createOpenLayersAdapter, createMapLibreAdapter } from './map/map-adapter'
 
 import styles from '../styles/moj-map.raw.css?raw'
+import Position from './map/types/position'
 
 type TileType = 'vector' | 'raster'
 
@@ -45,6 +46,8 @@ export class MojMap extends HTMLElement {
 
   private geoJson: FeatureCollection | null = null
 
+  private positionData: Array<Position> = []
+
   private mapInstance!: OLMapInstance | MapLibreMapInstance
 
   constructor() {
@@ -56,6 +59,7 @@ export class MojMap extends HTMLElement {
     this.mapNonce = getMapNonce(this)
     this.render()
     this.geoJson = this.parseGeoJsonFromSlot()
+    this.positionData = this.parsePositionDataFromSlot()
     await this.initialiseMap()
 
     this.dispatchEvent(
@@ -72,6 +76,10 @@ export class MojMap extends HTMLElement {
 
   public get geojson(): FeatureCollection | null {
     return this.geoJson
+  }
+
+  public get positions(): Array<Position> {
+    return this.positionData
   }
 
   public get map(): unknown {
@@ -155,6 +163,19 @@ export class MojMap extends HTMLElement {
       }
     }
     return null
+  }
+
+  private parsePositionDataFromSlot(): Array<Position> {
+    const script = this.querySelector('script[type="application/json"][slot="position-data"]')
+    if (script && script.textContent) {
+      try {
+        return JSON.parse(script.textContent) as Array<Position>
+      } catch (e) {
+        console.warn('Invalid position data passed to <moj-map>', e)
+        return []
+      }
+    }
+    return []
   }
 
   private async initialiseMap() {
