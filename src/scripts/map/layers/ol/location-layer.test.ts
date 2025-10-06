@@ -53,22 +53,22 @@ describe('OLLocationsLayer (OpenLayers library)', () => {
     expect(image.getStroke()?.getWidth()).toBe(1)
   })
 
-  it('should be hidden by default', () => {
+  it('should be visible by default', () => {
     const layer = new OLLocationsLayer({
       positions,
       title: '',
     })
 
-    expect(layer.getVisible()).toBeFalsy()
+    expect(layer.getVisible()).toBeTruthy()
   })
 
   it('should override the default visibility', () => {
     const layer = new OLLocationsLayer({
       positions,
       title: '',
-      visible: true,
+      visible: false,
     })
 
-    expect(layer.getVisible()).toBeTruthy()
+    expect(layer.getVisible()).toBeFalsy()
   })
 })

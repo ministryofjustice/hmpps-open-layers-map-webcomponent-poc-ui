@@ -28,7 +28,7 @@ const DEFAULT_RADIUS = 6
 const DEFAULT_FILL = '#d4351c'
 const DEFAULT_STROKE_COLOR = '#505a5f'
 const DEFAULT_STROKE_WIDTH = 2
-const DEFAULT_VISIBILITY = false
+const DEFAULT_VISIBILITY = true
 const DEFAULT_STYLE: OLLocationsLayerStyle = {
   fill: DEFAULT_FILL,
   radius: DEFAULT_RADIUS,

@@ -97,7 +97,7 @@ map.addEventListener('map:ready', () => {
   const locationsLayer = mojMap.addLayer(
     new LocationsLayer({
       title: 'pointsLayer',
-      geoJson,
+      positions,
     }),
   )
 
