@@ -1,13 +1,12 @@
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import { GeoJSON } from 'ol/format'
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import type Feature from 'ol/Feature'
 import type Geometry from 'ol/geom/Geometry'
+import { OLLocationsLayer } from './ol/locations-layer'
 
-import type { FeatureCollection } from 'geojson'
 import type { ComposableLayer, LayerStateOptions } from './base'
 import type { MapAdapter } from '../map-adapter'
+import Position from '../types/position'
 
 type OLVecSrc = VectorSource<Feature<Geometry>>
 type OLVecLayer = VectorLayer<OLVecSrc>
@@ -18,39 +17,12 @@ export type LocationsLayerOptions = {
   visible?: boolean
   zIndex?: number
   style?: {
-    radius?: number
-    fill?: string
-    stroke?: { color?: string; width?: number }
+    radius: number
+    fill: string
+    stroke: { color: string; width: number }
   }
-  geoJson: FeatureCollection
-}
-
-function buildOlStyle(style?: LocationsLayerOptions['style']) {
-  return new Style({
-    image: new CircleStyle({
-      radius: style?.radius ?? 6,
-      fill: new Fill({ color: style?.fill ?? '#d4351c' }),
-      stroke: new Stroke({
-        color: style?.stroke?.color ?? '#505a5f',
-        width: style?.stroke?.width ?? 2,
-      }),
-    }),
-  })
-}
-
-function filterToPointFeatures(geoJson: FeatureCollection): FeatureCollection {
-  const features = geoJson.features.filter(f => f.geometry?.type === 'Point')
-  return { type: 'FeatureCollection', features }
-}
-
-function toOlSource(geoJson: FeatureCollection) {
-  const onlyPoints = filterToPointFeatures(geoJson)
-  const formatter = new GeoJSON()
-  const features = formatter.readFeatures(onlyPoints, {
-    dataProjection: 'EPSG:4326',
-    featureProjection: 'EPSG:3857',
-  }) as Array<Feature<Geometry>>
-  return new VectorSource<Feature<Geometry>>({ features })
+  // The data to render (required)
+  positions: Array<Position>
 }
 
 export class LocationsLayer implements ComposableLayer<OLVecLayer> {
@@ -70,28 +42,22 @@ export class LocationsLayer implements ComposableLayer<OLVecLayer> {
   }
 
   attach(adapter: MapAdapter, layerStateOptions?: LayerStateOptions): void {
-    if (adapter.mapLibrary === 'openlayers') {
-      const { map } = adapter.openlayers!
-      const source = toOlSource(this.options.geoJson)
-      const vectorLayer = new VectorLayer({
-        source,
-        style: buildOlStyle(this.options.style),
-        properties: { title: this.options.title ?? this.id },
-      }) as OLVecLayer
-
-      const resolvedVisible = layerStateOptions?.visible ?? this.options.visible ?? true
-      const resolvedZIndex = layerStateOptions?.zIndex ?? this.options.zIndex
-
-      vectorLayer.setVisible(resolvedVisible)
-      if (resolvedZIndex !== undefined) vectorLayer.setZIndex(resolvedZIndex)
-
-      map.addLayer(vectorLayer)
-      this.olLayer = vectorLayer
+    if (adapter.mapLibrary !== 'openlayers') {
+      console.warn(`[TracksLayer] MapLibre support is not implemented yet (layer "${this.id}")`)
       return
     }
 
-    // MapLibre stub
-    console.warn(`[LocationLayer] MapLibre support is not implemented yet (layer "${this.id}")`)
+    const { map } = adapter.openlayers!
+
+    this.olLayer = new OLLocationsLayer({
+      positions: this.options.positions,
+      style: this.options.style,
+      title: this.options.title ?? this.id,
+      visible: layerStateOptions?.visible ?? this.options.visible,
+      zIndex: layerStateOptions?.zIndex ?? this.options.zIndex,
+    })
+
+    map.addLayer(this.olLayer)
   }
 
   detach(adapter: MapAdapter): void {
