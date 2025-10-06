@@ -111,7 +111,7 @@ map.addEventListener('map:ready', () => {
 
   mojMap.addLayer(
     new NumberingLayer({
-      geoJson,
+      positions,
       numberProperty: 'sequenceNumber',
       title: 'numberingLayer',
       visible: true,

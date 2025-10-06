@@ -2,36 +2,43 @@
     {
         "latitude": 53.4808,
         "longitude": -2.2426,
-        "precision": 50
+        "precision": 50,
+        "sequenceNumber": 1
     },
     {
         "latitude": 53.478,
         "longitude": -2.25,
-        "precision": 400
+        "precision": 400,
+        "sequenceNumber": 2
     },
     {
         "latitude": 53.483,
         "longitude": -2.236,
-        "precision": 200
+        "precision": 200,
+        "sequenceNumber": 3
     },
     {
         "latitude": 53.476,
         "longitude": -2.229,
-        "precision": 500
+        "precision": 500,
+        "sequenceNumber": 4
     },
     {
         "latitude": 53.485,
         "longitude": -2.26,
-        "precision": 300
+        "precision": 300,
+        "sequenceNumber": 5
     },
     {
         "latitude": 53.472,
         "longitude": -2.245,
-        "precision": 100
+        "precision": 100,
+        "sequenceNumber": 6
     },
     {
         "latitude": 53.49,
         "longitude": -2.255,
-        "precision": 100
+        "precision": 100,
+        "sequenceNumber": 7
     }
 ]
