@@ -2,12 +2,12 @@ import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Style } from 'ol/style'
 import type Feature from 'ol/Feature'
-import type { Circle as CircleGeom } from 'ol/geom'
+import type { Circle } from 'ol/geom'
 import { CirclesLayer } from './circles-layer'
 import makeOpenLayersAdapter from '../../../../tests/utils/openlayers-adapter'
 import positions from '../../../../tests/fixtures/positions'
 
-type OLCircleFeature = Feature<CircleGeom>
+type OLCircleFeature = Feature<Circle>
 type OLVecSource = VectorSource<OLCircleFeature>
 type OLVecLayer = VectorLayer<OLVecSource>
 

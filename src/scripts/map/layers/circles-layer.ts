@@ -1,6 +1,6 @@
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import { Circle as CircleGeom } from 'ol/geom'
+import { Circle } from 'ol/geom'
 import Feature from 'ol/Feature'
 
 import type { ComposableLayer } from './base'
@@ -8,7 +8,7 @@ import type { MapAdapter } from '../map-adapter'
 import { OLCirclesLayer } from './ol/circles-layer'
 import Position from '../types/position'
 
-type OLCircleFeature = Feature<CircleGeom>
+type OLCircleFeature = Feature<Circle>
 type OLVecSource = VectorSource<OLCircleFeature>
 type OLVecLayer = VectorLayer<OLVecSource>
 

@@ -120,10 +120,9 @@ map.addEventListener('map:ready', () => {
 
   mojMap.addLayer(
     new CirclesLayer({
-      geoJson,
+      positions,
       id: 'confidence',
       title: 'confidenceLayer',
-      radiusProperty: 'precision',
       visible: true,
     }),
   )
