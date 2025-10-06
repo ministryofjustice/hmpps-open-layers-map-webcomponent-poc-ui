@@ -3,7 +3,7 @@ import LineStyle from '../../styles/line'
 import { OLLinesLayer } from './lines-layer'
 import positions from '../../../../../tests/fixtures/positions'
 
-describe('OLTracksLayer (OpenLayers library)', () => {
+describe('OLLinesLayer (OpenLayers library)', () => {
   it('should display a single thin line for each line segment when the resolution is large', () => {
     const resolution = 1500
     const layer = new OLLinesLayer({ positions, title: '' })

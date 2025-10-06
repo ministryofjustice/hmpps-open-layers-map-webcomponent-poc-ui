@@ -55,8 +55,6 @@ const createStyleFunction =
   (feature: FeatureLike): Array<Style> => {
     const value = feature.get(property)
 
-    console.log(feature)
-
     if (value !== undefined) {
       return [
         new Style({
