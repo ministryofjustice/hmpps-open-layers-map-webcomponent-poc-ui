@@ -11,11 +11,10 @@ export function createMapDOM(): DocumentFragment {
   overlay.hidden = true
   overlay.innerHTML = `
     <div class="app-map__overlay-header">
+      <div class="app-map__overlay-title"></div>
       <button class="app-map__overlay-close" aria-label="Close overlay">&times;</button>
     </div>
-    <div class="app-map__overlay-body">
-      <slot name="overlay"></slot>
-    </div>
+    <div class="app-map__overlay-body"></div>
   `
   fragment.appendChild(overlay)
 
