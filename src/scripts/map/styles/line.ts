@@ -15,11 +15,11 @@ const scaleLineWidthWithResolution = (resolution: number): number => {
 }
 
 class LineStyle extends Style {
-  constructor(resolution: number) {
+  constructor(strokeColor: string, resolution: number) {
     super({
       stroke: new Stroke({
         width: scaleLineWidthWithResolution(resolution),
-        color: 'black',
+        color: strokeColor,
       }),
     })
   }
