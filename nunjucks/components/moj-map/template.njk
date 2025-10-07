@@ -25,4 +25,10 @@
       {{ params.geoJson | dump | safe }}
     </script>
   {% endif %}
+
+  {% if params.positions is defined and params.positions %}
+    <script type="application/json" slot="position-data">
+      {{ params.positions | dump | safe }}
+    </script>
+  {% endif %}
 </moj-map>
