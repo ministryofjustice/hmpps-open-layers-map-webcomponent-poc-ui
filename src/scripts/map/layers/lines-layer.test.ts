@@ -1,37 +1,12 @@
-import type { FeatureCollection } from 'geojson'
 import VectorLayer from 'ol/layer/Vector'
 import { LinesLayer } from './lines-layer'
 import makeOpenLayersAdapter from '../../../../tests/utils/openlayers-adapter'
+import positions from '../../../../tests/fixtures/positions'
 
 describe('LinesLayer', () => {
-  const sampleGeoJson: FeatureCollection = {
-    type: 'FeatureCollection',
-    features: [
-      {
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: [
-            [0, 0],
-            [1, 1],
-          ],
-        },
-        properties: {},
-      },
-      {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [0, 0],
-        },
-        properties: {},
-      },
-    ],
-  }
-
   it('attaches and adds a VectorLayer to the map', () => {
     const { adapter, olMapMock } = makeOpenLayersAdapter()
-    const layer = new LinesLayer({ geoJson: sampleGeoJson })
+    const layer = new LinesLayer({ positions })
 
     layer.attach(adapter)
 
@@ -44,7 +19,7 @@ describe('LinesLayer', () => {
   it('respects visible and zIndex options', () => {
     const { adapter } = makeOpenLayersAdapter()
     const layer = new LinesLayer({
-      geoJson: sampleGeoJson,
+      positions,
       visible: false,
       zIndex: 5,
     })
@@ -59,7 +34,7 @@ describe('LinesLayer', () => {
   it('layerStateOptions override constructor options', () => {
     const { adapter } = makeOpenLayersAdapter()
     const layer = new LinesLayer({
-      geoJson: sampleGeoJson,
+      positions,
       visible: true,
       zIndex: 2,
     })
@@ -73,7 +48,7 @@ describe('LinesLayer', () => {
 
   it('detaches and removes the layer from the map', () => {
     const { adapter, olMapMock } = makeOpenLayersAdapter()
-    const layer = new LinesLayer({ geoJson: sampleGeoJson })
+    const layer = new LinesLayer({ positions })
     layer.attach(adapter)
 
     layer.detach(adapter)

@@ -10,6 +10,20 @@ import { createLineStringFeatureCollectionFromPositions } from '../../features/l
 import Position from '../../types/position'
 import ArrowStyle from '../../styles/arrow'
 
+type OLTracksLayerStyle = {
+  stroke: {
+    color: string
+  }
+}
+
+type OLTracksLayerOptions = {
+  positions: Array<Position>
+  style?: OLTracksLayerStyle
+  title: string
+  visible?: boolean
+  zIndex?: number
+}
+
 const getArrowStyles = (start: Coordinate, rotation: number, magnitude: number, resolution: number): Array<Style> => {
   const baseIntervalDistance = 50
 
@@ -29,25 +43,35 @@ const getArrowStyles = (start: Coordinate, rotation: number, magnitude: number, 
   )
 }
 
-const getLineSegmentStyles = (feature: FeatureLike, resolution: number): Array<Style> => {
-  const geometry = (feature as Feature<LineString>).getGeometry()!
-  const coordinates = geometry.getCoordinates()
-  const magnitude = geometry.getLength()
-  const start = coordinates[0]
-  const end = coordinates[1]
-  const rotation = -calculateAngleOfInclination(start, end) + Math.PI / 2
+const createStyleFunction =
+  (style: OLTracksLayerStyle) =>
+  (feature: FeatureLike, resolution: number): Array<Style> => {
+    const geometry = (feature as Feature<LineString>).getGeometry()!
+    const coordinates = geometry.getCoordinates()
+    const magnitude = geometry.getLength()
+    const start = coordinates[0]
+    const end = coordinates[1]
+    const rotation = -calculateAngleOfInclination(start, end) + Math.PI / 2
 
-  return [new LineStyle(resolution), ...getArrowStyles(start, rotation, magnitude, resolution)]
+    return [new LineStyle(style.stroke.color, resolution), ...getArrowStyles(start, rotation, magnitude, resolution)]
+  }
+
+const DEFAULT_VISIBILITY = false
+const DEFAULT_STROKE_COLOR = 'black'
+const DEFAULT_STYLE: OLTracksLayerStyle = {
+  stroke: {
+    color: DEFAULT_STROKE_COLOR,
+  },
 }
 
 export class OLTracksLayer extends VectorLayer<VectorSource<Feature<LineString>>> {
-  constructor(positions: Array<Position>, title: string, visible: boolean, zIndex?: number) {
+  constructor({ positions, style = DEFAULT_STYLE, title, visible = DEFAULT_VISIBILITY, zIndex }: OLTracksLayerOptions) {
     super({
       properties: {
         title,
       },
       source: new VectorSource({ features: createLineStringFeatureCollectionFromPositions(positions) }),
-      style: getLineSegmentStyles,
+      style: createStyleFunction(style),
       visible,
       zIndex,
     })

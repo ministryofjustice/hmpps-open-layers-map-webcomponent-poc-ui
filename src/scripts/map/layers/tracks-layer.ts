@@ -15,6 +15,11 @@ export type TracksLayerOptions = {
   title?: string
   visible?: boolean
   zIndex?: number
+  style?: {
+    stroke: {
+      color: string
+    }
+  }
   // The data to render (required)
   positions: Array<Position>
 }
@@ -43,12 +48,13 @@ export class TracksLayer implements ComposableLayer<OLVecLayer> {
 
     const { map } = adapter.openlayers!
 
-    this.olLayer = new OLTracksLayer(
-      this.options.positions,
-      this.options.title ?? this.id,
-      this.options.visible ?? false,
-      this.options.zIndex,
-    )
+    this.olLayer = new OLTracksLayer({
+      positions: this.options.positions,
+      style: this.options.style,
+      title: this.options.title ?? this.id,
+      visible: this.options.visible,
+      zIndex: this.options.zIndex,
+    })
 
     map.addLayer(this.olLayer)
   }

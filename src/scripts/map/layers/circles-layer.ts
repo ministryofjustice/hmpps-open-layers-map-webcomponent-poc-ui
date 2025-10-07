@@ -1,15 +1,14 @@
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import { GeoJSON } from 'ol/format'
-import { Fill, Stroke, Style } from 'ol/style'
-import { Circle as CircleGeom, Point } from 'ol/geom'
+import { Circle } from 'ol/geom'
 import Feature from 'ol/Feature'
 
-import type { FeatureCollection } from 'geojson'
 import type { ComposableLayer } from './base'
 import type { MapAdapter } from '../map-adapter'
+import { OLCirclesLayer } from './ol/circles-layer'
+import Position from '../types/position'
 
-type OLCircleFeature = Feature<CircleGeom>
+type OLCircleFeature = Feature<Circle>
 type OLVecSource = VectorSource<OLCircleFeature>
 type OLVecLayer = VectorLayer<OLVecSource>
 
@@ -18,38 +17,12 @@ export type CirclesLayerOptions = {
   title?: string
   visible?: boolean
   zIndex?: number
-  style?: Style
-  radiusProperty?: string
-  geoJson: FeatureCollection
-}
-
-const defaultStyle = new Style({
-  stroke: new Stroke({
-    color: 'orange',
-    width: 2,
-  }),
-  fill: new Fill({
-    color: 'rgba(255, 165, 0, 0.1)',
-  }),
-})
-
-function toOlSource(geoJson: FeatureCollection, radiusProperty: string): OLVecSource {
-  const formatter = new GeoJSON()
-  const pointFeatures = formatter.readFeatures(geoJson, {
-    dataProjection: 'EPSG:4326',
-    featureProjection: 'EPSG:3857',
-  }) as Array<Feature<Point>>
-
-  const circleFeatures = pointFeatures.map(feature => {
-    const geom = feature.getGeometry() as Point
-    const coords = geom.getCoordinates()
-    const radius = feature.get(radiusProperty)
-    const circle = new CircleGeom(coords, radius)
-
-    return new Feature({ geometry: circle }) as OLCircleFeature
-  })
-
-  return new VectorSource<OLCircleFeature>({ features: circleFeatures })
+  style?: {
+    fill: string
+    stroke: { color: string; width: number }
+  }
+  // The data to render (required)
+  positions: Array<Position>
 }
 
 export class CirclesLayer implements ComposableLayer<OLVecLayer> {
@@ -75,22 +48,16 @@ export class CirclesLayer implements ComposableLayer<OLVecLayer> {
     }
 
     const { map } = adapter.openlayers!
-    const radiusProp = this.options.radiusProperty ?? 'confidence'
 
-    const vectorLayer = new VectorLayer({
-      source: toOlSource(this.options.geoJson, radiusProp),
-      style: this.options.style ?? defaultStyle,
-      properties: { title: this.options.title ?? this.id },
-    }) as OLVecLayer
+    this.olLayer = new OLCirclesLayer({
+      positions: this.options.positions,
+      style: this.options.style,
+      title: this.options.title ?? this.id,
+      visible: this.options.visible,
+      zIndex: this.options.zIndex,
+    })
 
-    const resolvedVisible = this.options.visible ?? false
-    const resolvedZIndex = this.options.zIndex
-
-    vectorLayer.setVisible(resolvedVisible)
-    if (resolvedZIndex !== undefined) vectorLayer.setZIndex(resolvedZIndex)
-
-    map.addLayer(vectorLayer)
-    this.olLayer = vectorLayer
+    map.addLayer(this.olLayer)
   }
 
   detach(adapter: MapAdapter): void {

@@ -111,7 +111,7 @@ map.addEventListener('map:ready', () => {
 
   mojMap.addLayer(
     new NumberingLayer({
-      geoJson,
+      positions,
       numberProperty: 'sequenceNumber',
       title: 'numberingLayer',
       visible: true,
@@ -120,10 +120,9 @@ map.addEventListener('map:ready', () => {
 
   mojMap.addLayer(
     new CirclesLayer({
-      geoJson,
+      positions,
       id: 'confidence',
       title: 'confidenceLayer',
-      radiusProperty: 'precision',
       visible: true,
     }),
   )
