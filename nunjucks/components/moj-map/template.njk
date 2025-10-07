@@ -1,3 +1,5 @@
+{% from "moj/components/alert/macro.njk" import mojAlert %}
+
 <moj-map
   {% if params.usesInternalOverlays %}uses-internal-overlays{% endif %}
   csp-nonce="{{ params.cspNonce }}"
@@ -19,6 +21,14 @@
   {% if params.controls.locationDisplay %}location-display="{{ params.controls.locationDisplay }}"{% endif %}
   {% if params.controls.enable3DBuildings %}enable-3d-buildings{% endif %}
   {% if params.geoJson %}grab-cursor{% endif %}>
+
+  {% if params.alerts and params.alerts.length > 0 %}
+    <div slot="alerts" class="moj-map__alerts">
+      {% for alert in params.alerts %}
+        {{ mojAlert(alert) }}
+      {% endfor %}
+    </div>
+  {% endif %}
 
   {% if params.geoJson is defined and params.geoJson %}
     <script type="application/json" slot="geojson-data">
