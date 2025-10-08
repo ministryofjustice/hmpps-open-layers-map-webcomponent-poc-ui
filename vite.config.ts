@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import eslint from 'vite-plugin-eslint'
+import eslint from 'vite-plugin-eslint2'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const isLibMode = process.env.BUILD === 'lib'
