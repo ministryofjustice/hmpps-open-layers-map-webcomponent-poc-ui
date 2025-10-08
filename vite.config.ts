@@ -26,7 +26,6 @@ export default defineConfig({
         lib: {
           entry: {
             index: 'src/index.ts',
-            converters: 'src/converters/index.ts',
             layers: 'src/scripts/map/layers/index.ts',
             'tile-token-proxy': 'src/scripts/tile-token-proxy/index.ts',
           },

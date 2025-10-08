@@ -1,6 +1,6 @@
 {
   "name": "hmpps-open-layers-map",
-  "version": "0.6.97",
+  "version": "0.7.1",
   "description": "A native Web Component for displaying maps using OpenLayers.",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
@@ -40,11 +40,6 @@
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
     },
-    "./converters": {
-      "types": "./dist/types/converters/index.d.ts",
-      "import": "./dist/converters/index.es.js",
-      "require": "./dist/converters/index.cjs.js"
-    },
     "./layers": {
       "types": "./dist/types/scripts/map/layers/index.d.ts",
       "import": "./dist/layers/index.es.js",
@@ -59,7 +54,6 @@
   "files": [
     "dist/",
     "dist/index.*",
-    "dist/converters/",
     "dist/scripts/map/layers/",
     "dist/types/",
     "nunjucks/"
