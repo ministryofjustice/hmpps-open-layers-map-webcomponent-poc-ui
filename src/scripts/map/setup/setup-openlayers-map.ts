@@ -137,17 +137,9 @@ export async function setupOpenLayersMap(
   if (options.controls?.grabCursor !== false) {
     map.addInteraction(new MapPointerInteraction())
     const viewportEl = map.getViewport()
-    viewportEl.style.cursor = 'grab'
 
-    viewportEl.addEventListener('pointerdown', () => {
-      viewportEl.style.cursor = 'grabbing'
-    })
-    viewportEl.addEventListener('pointerup', () => {
-      viewportEl.style.cursor = 'grab'
-    })
-    viewportEl.addEventListener('pointerleave', () => {
-      viewportEl.style.cursor = 'grab'
-    })
+    // Set initial cursor
+    viewportEl.style.cursor = 'grab'
   }
 
   return map

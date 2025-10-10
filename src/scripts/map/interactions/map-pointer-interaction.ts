@@ -10,7 +10,10 @@ export default class MapPointerInteraction extends PointerInteraction {
     const viewport = event.map.getViewport()
 
     if (event.type === 'pointerdown') {
-      viewport.style.cursor = 'grabbing'
+      // Only change to 'grabbing' if the current cursor isn't already 'pointer'
+      if (viewport.style.cursor !== 'pointer') {
+        viewport.style.cursor = 'grabbing'
+      }
       return true
     }
 

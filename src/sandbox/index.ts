@@ -6,12 +6,9 @@ import config from '../scripts/map/config'
 import '../styles/moj-map.scss'
 
 // Import some sample GeoJSON data for testing
-import emptyData from './fixtures/empty.json'
-import locationData from './fixtures/location-data.json'
 import emptyPositions from './fixtures/empty-positions.json'
 import positions from './fixtures/positions.json'
 
-let geojsonData
 let positionData
 
 const map = document.createElement('moj-map')
@@ -65,18 +62,10 @@ map.setAttribute('grab-cursor', 'true')
 // Load some sample data
 
 // Empty data
-// geojsonData = emptyData
 // positionData = emptyPositions
 
 // Point data
-geojsonData = locationData
 positionData = positions
-
-const geoJsonScript = document.createElement('script')
-geoJsonScript.setAttribute('type', 'application/json')
-geoJsonScript.setAttribute('slot', 'geojson-data')
-geoJsonScript.textContent = JSON.stringify(geojsonData)
-map.appendChild(geoJsonScript)
 
 const positionsScript = document.createElement('script')
 positionsScript.setAttribute('type', 'application/json')
@@ -89,10 +78,9 @@ document.body.appendChild(map)
 map.addEventListener('map:ready', () => {
   const mojMap = map as MojMap
   const olMap = mojMap.olMapInstance
-  const geoJson = mojMap.geojson
   const positions = mojMap.positions
 
-  if (!olMap || !geoJson) return
+  if (!olMap || !positions?.length) return
 
   const locationsLayer = mojMap.addLayer(
     new LocationsLayer({

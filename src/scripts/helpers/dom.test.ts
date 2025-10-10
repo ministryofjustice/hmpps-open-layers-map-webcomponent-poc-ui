@@ -1,3 +1,5 @@
+/// <reference types="@testing-library/jest-dom" />
+
 import { createMapDOM, createScopedStyle, getMapNonce } from './dom'
 
 describe('dom helpers', () => {
@@ -29,7 +31,7 @@ describe('dom helpers', () => {
 
       const title = overlay.querySelector('.app-map__overlay-title')
       expect(title).toBeInstanceOf(HTMLElement)
-      expect(title?.textContent).toBe('') // should start empty
+      expect(title?.textContent).toBe('')
     })
   })
 

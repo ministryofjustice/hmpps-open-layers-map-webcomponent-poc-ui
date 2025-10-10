@@ -18,6 +18,10 @@ export function createMapDOM(): DocumentFragment {
   `
   fragment.appendChild(overlay)
 
+  const alertsSlot = document.createElement('slot')
+  alertsSlot.name = 'alerts'
+  fragment.appendChild(alertsSlot)
+
   return fragment
 }
 

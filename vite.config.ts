@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import eslint from 'vite-plugin-eslint'
+import eslint from 'vite-plugin-eslint2'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const isLibMode = process.env.BUILD === 'lib'
@@ -26,7 +26,6 @@ export default defineConfig({
         lib: {
           entry: {
             index: 'src/index.ts',
-            converters: 'src/converters/index.ts',
             layers: 'src/scripts/map/layers/index.ts',
             'tile-token-proxy': 'src/scripts/tile-token-proxy/index.ts',
           },
