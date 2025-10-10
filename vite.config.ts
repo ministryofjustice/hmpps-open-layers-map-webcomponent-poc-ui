@@ -27,7 +27,7 @@ export default defineConfig({
           entry: {
             index: 'src/index.ts',
             layers: 'src/scripts/map/layers/index.ts',
-            'tile-token-proxy': 'src/scripts/tile-token-proxy/index.ts',
+            'ordnance-survey-auth': 'src/scripts/ordnance-survey-auth/index.ts',
           },
           name: 'MojMap',
           formats: ['es', 'cjs'],

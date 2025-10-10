@@ -1,13 +1,8 @@
 import { applyStyle } from 'ol-mapbox-style'
-import { OrdnanceSurveyVectorTileLayer, resolveTileType } from './ordnance-survey-vector'
-import { supportsWebGL } from '../../helpers/browser'
+import { OrdnanceSurveyVectorTileLayer } from './ordnance-survey-vector'
 
 jest.mock('ol-mapbox-style', () => ({
   applyStyle: jest.fn().mockResolvedValue('STYLE_APPLIED'),
-}))
-
-jest.mock('../../helpers/browser', () => ({
-  supportsWebGL: jest.fn(),
 }))
 
 jest.mock('ol/layer/VectorTile', () => {
@@ -27,26 +22,6 @@ jest.mock('ol/layer/VectorTile', () => {
   }
 })
 
-describe('resolveTileType', () => {
-  it('returns vector if explicitly requested', () => {
-    expect(resolveTileType('vector')).toBe('vector')
-  })
-
-  it('returns raster if explicitly requested', () => {
-    expect(resolveTileType('raster')).toBe('raster')
-  })
-
-  it('returns vector when supportsWebGL = true', () => {
-    ;(supportsWebGL as jest.Mock).mockReturnValue(true)
-    expect(resolveTileType(null)).toBe('vector')
-  })
-
-  it('returns raster when supportsWebGL = false', () => {
-    ;(supportsWebGL as jest.Mock).mockReturnValue(false)
-    expect(resolveTileType(null)).toBe('raster')
-  })
-})
-
 describe('OrdnanceSurveyVectorTileLayer', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -60,13 +35,13 @@ describe('OrdnanceSurveyVectorTileLayer', () => {
 
   it('strips a single trailing slash before passing to applyStyle', async () => {
     const layer = new OrdnanceSurveyVectorTileLayer()
-    await layer.applyVectorStyle('https://tiles.os.uk/styles/')
-    expect(applyStyle).toHaveBeenCalledWith(layer, 'https://tiles.os.uk/styles')
+    await layer.applyVectorStyle('https://api.os.uk/maps/vector/v1/vts/resources/styles/')
+    expect(applyStyle).toHaveBeenCalledWith(layer, 'https://api.os.uk/maps/vector/v1/vts/resources/styles')
   })
 
   it('returns the result of applyStyle', async () => {
     const layer = new OrdnanceSurveyVectorTileLayer()
-    const result = await layer.applyVectorStyle('https://tiles.os.uk/styles/os.json')
+    const result = await layer.applyVectorStyle('https://api.os.uk/maps/vector/v1/vts/resources/styles/os.json')
     expect(result).toBe('STYLE_APPLIED')
   })
 })

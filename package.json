@@ -45,10 +45,10 @@
       "import": "./dist/layers/index.es.js",
       "require": "./dist/layers/index.cjs.js"
     },
-    "./tile-token-proxy": {
-      "types": "./dist/types/scripts/tile-token-proxy/index.d.ts",
-      "import": "./dist/tile-token-proxy/index.es.js",
-      "require": "./dist/tile-token-proxy/index.cjs.js"
+    "./ordnance-survey-auth": {
+      "types": "./dist/types/scripts/ordnance-survey-auth/index.d.ts",
+      "import": "./dist/ordnance-survey-auth/index.es.js",
+      "require": "./dist/ordnance-survey-auth/index.cjs.js"
     }
   },
   "files": [

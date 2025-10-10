@@ -13,7 +13,6 @@ jest.mock('./map/config', () => ({
   default: {
     tiles: {
       urls: {
-        tileUrl: 'https://mock-tiles',
         vectorStyleUrl: 'https://mock-vector',
       },
       defaultTokenUrl: 'https://mock-token',
@@ -63,8 +62,6 @@ describe('MojMap', () => {
   it('uses OpenLayers setup by default and passes expected options', async () => {
     const mojMap = document.createElement('moj-map') as MojMap
     mojMap.setAttribute('renderer', 'openlayers')
-    mojMap.setAttribute('tile-type', 'vector')
-    mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
     mojMap.setAttribute('api-key', 'API_KEY')
@@ -81,9 +78,6 @@ describe('MojMap', () => {
     expect(container instanceof HTMLElement).toBe(true)
     expect(opts).toEqual(
       expect.objectContaining({
-        tileType: 'vector',
-        tokenUrl: 'none',
-        tileUrl: 'https://attr-tiles',
         vectorUrl: 'https://attr-vector',
         usesInternalOverlays: false,
         controls: expect.any(Object),
@@ -94,8 +88,6 @@ describe('MojMap', () => {
   it('uses MapLibre setup when renderer="maplibre"', async () => {
     const mojMap = document.createElement('moj-map') as MojMap
     mojMap.setAttribute('renderer', 'maplibre')
-    mojMap.setAttribute('tile-type', 'vector')
-    mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
     mojMap.setAttribute('api-key', 'API_KEY')
@@ -108,18 +100,15 @@ describe('MojMap', () => {
     await ready
 
     expect(setupMapLibreMap).toHaveBeenCalledTimes(1)
-    const [container, vectorUrl, enable3D, apiKey] = (setupMapLibreMap as jest.Mock).mock.calls[0]
+    const [container, vectorUrl, enable3D] = (setupMapLibreMap as jest.Mock).mock.calls[0]
     expect(container instanceof HTMLElement).toBe(true)
     expect(vectorUrl).toBe('https://attr-vector')
     expect(typeof enable3D).toBe('boolean')
-    expect(apiKey).toBe('API_KEY')
   })
 
   it('fires map:ready and exposes .map', async () => {
     const mojMap = document.createElement('moj-map') as MojMap
     mojMap.setAttribute('renderer', 'openlayers')
-    mojMap.setAttribute('tile-type', 'vector')
-    mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
     mojMap.setAttribute('api-key', 'API_KEY')
@@ -138,8 +127,6 @@ describe('MojMap', () => {
   it('addLayer attaches via adapter, and removeLayer detaches', async () => {
     const mojMap = document.createElement('moj-map') as MojMap
     mojMap.setAttribute('renderer', 'openlayers')
-    mojMap.setAttribute('tile-type', 'vector')
-    mojMap.setAttribute('tile-url', 'https://attr-tiles')
     mojMap.setAttribute('vector-url', 'https://attr-vector')
     mojMap.setAttribute('access-token-url', 'none')
     mojMap.setAttribute('api-key', 'API_KEY')
