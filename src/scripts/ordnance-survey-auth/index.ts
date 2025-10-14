@@ -1,6 +1,13 @@
 import express, { Request, Response, NextFunction, Router } from 'express'
-import superagent from 'superagent'
-import qs from 'qs'
+import config from '../map/config'
+
+interface MapboxStyle {
+  version?: number
+  sprite?: string
+  glyphs?: string
+  sources?: Record<string, MapboxSource>
+  layers?: unknown[]
+}
 
 interface MapboxSource {
   type?: string
@@ -10,10 +17,8 @@ interface MapboxSource {
 }
 
 export interface OrdnanceSurveyAuthOptions {
-  authUrl: string
   apiKey: string
   apiSecret: string
-  upstreamBase: string // Base URL for the vector service (e.g. https://api.os.uk/maps/vector/v1)
 }
 
 type CachedToken = {
@@ -24,106 +29,193 @@ type CachedToken = {
 }
 
 let cachedToken: CachedToken | null = null
+const BASE_PATH = config.tiles.urls.localBasePath
 
-// Check if the token is expired or about to expire within 60 seconds.
+// Check if the token is expired or about to expire (within 60 seconds)
 function isTokenExpired(token: CachedToken): boolean {
   const expiryTime = token.issued_at + token.expires_in * 1000
   return Date.now() >= expiryTime - 60_000
 }
 
-// Fetch a new OAuth2 access token from Ordnance Survey.
-async function fetchNewToken(authUrl: string, apiKey: string, apiSecret: string): Promise<CachedToken> {
-  const response = await superagent
-    .post(authUrl)
-    .auth(apiKey, apiSecret)
-    .set('Content-Type', 'application/x-www-form-urlencoded')
-    .send(qs.stringify({ grant_type: 'client_credentials' }))
+// Fetch a new OAuth2 access token from Ordnance Survey
+async function fetchNewToken(apiKey: string, apiSecret: string): Promise<CachedToken> {
+  const authHeader = `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')}`
 
-  const token = response.body as CachedToken
+  const res = await fetch(config.tiles.urls.authUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: authHeader,
+    },
+    body: new URLSearchParams({ grant_type: 'client_credentials' }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Token request failed (${res.status} ${res.statusText})`)
+  }
+
+  const token = (await res.json()) as CachedToken
   token.issued_at = Date.now()
   return token
 }
 
-// Get a valid OS access token, refreshing if expired.
-async function getAccessToken(opts: OrdnanceSurveyAuthOptions): Promise<string> {
+// Get a valid OS access token, refreshing if expired
+async function getAccessToken(options: OrdnanceSurveyAuthOptions): Promise<string> {
+  const { apiKey, apiSecret } = options
   if (!cachedToken || isTokenExpired(cachedToken)) {
-    cachedToken = await fetchNewToken(opts.authUrl, opts.apiKey, opts.apiSecret)
+    cachedToken = await fetchNewToken(apiKey, apiSecret)
   }
   return cachedToken.access_token
 }
 
-// Express middleware for securely fetching Ordnance Survey vector tiles and assets via OAuth2.
-export function mojOrdnanceSurveyAuth(options: OrdnanceSurveyAuthOptions): Router {
-  const { authUrl, apiKey, apiSecret, upstreamBase } = options
-  if (!authUrl || !apiKey || !apiSecret || !upstreamBase) {
-    throw new Error('Missing Ordnance Survey credentials or upstreamBase URL.')
+// Helper to securely fetch requests to the Ordnance Survey Maps API
+async function fetchFromOrdnanceSurvey(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  ordnanceSurveyApiUrl: string,
+  accessToken: string,
+) {
+  try {
+    const ordnanceSurveyResponse = await fetch(ordnanceSurveyApiUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+
+    if (!ordnanceSurveyResponse.ok) {
+      throw new Error(
+        `[os-auth] Ordnance Survey request failed: ${ordnanceSurveyResponse.status} ${ordnanceSurveyResponse.statusText}`,
+      )
+    }
+
+    // Preserve correct content type (JSON, PBF, etc.)
+    res.setHeader('Content-Type', ordnanceSurveyResponse.headers.get('content-type') || 'application/octet-stream')
+
+    // Convert binary data to a Node Buffer and send
+    const buffer = Buffer.from(await ordnanceSurveyResponse.arrayBuffer())
+    res.send(buffer)
+  } catch (err) {
+    console.error('[os-auth] Error fetching Ordnance Survey request:', err)
+    next(err)
   }
+}
+
+// Express middleware for securely fetching Ordnance Survey vector tiles and assets via OAuth2
+export function mojOrdnanceSurveyAuth(options: OrdnanceSurveyAuthOptions): Router {
+  const vectorBaseUrl = config.tiles.urls.vectorSourceUrl.replace(/\/vts$/, '')
+  const vectorRoot = `${vectorBaseUrl}/vts`
 
   const router = express.Router()
-  const vectorRoot = `${upstreamBase.replace(/\/$/, '')}/vts`
-
-  // Helper to forward a request to OS with the current Bearer token.
-  async function fetchFromOrdnanceSurvey(req: Request, res: Response, next: NextFunction, upstreamUrl: string) {
-    try {
-      const token = await getAccessToken(options)
-      const response = await superagent
-        .get(upstreamUrl)
-        .set('Authorization', `Bearer ${token}`)
-        .responseType('blob')
-        .buffer(true)
-
-      res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream')
-      res.send(response.body)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      console.error('[os-auth] Proxy error:', message)
-      next(error)
-    }
-  }
 
   // Style JSON endpoint
-  router.get('/vector/style', async (req, res, next) => {
+  router.get(`${BASE_PATH}/style`, async (_req, res, next) => {
     try {
       const styleUrl = `${vectorRoot}/resources/styles?srs=3857`
       const token = await getAccessToken(options)
-      const response = await superagent.get(styleUrl).set('Authorization', `Bearer ${token}`).accept('application/json')
+      const response = await fetch(styleUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-      const style = response.body
+      if (!response.ok) {
+        throw new Error(`Failed to fetch style JSON (${response.status})`)
+      }
 
-      // Rewrite URLs to go via middleware
+      const style = (await response.json()) as MapboxStyle
+
+      // Rewrite source + assets URLs to the local middleware endpoints
       if (style.sources) {
-        for (const source of Object.values(style.sources) as MapboxSource[]) {
+        for (const source of Object.values(style.sources)) {
           if (typeof source.url === 'string') {
-            source.url = '/os-map/vector/source'
+            source.url = `${BASE_PATH}/source`
           }
           if (Array.isArray(source.tiles)) {
             source.tiles = source.tiles.map(tile =>
-              tile.replace(/^https:\/\/api\.os\.uk\/maps\/vector\/v1\/vts/, '/os-map/vector/tiles'),
+              tile.replace(/^https:\/\/api\.os\.uk\/maps\/vector\/v1\/vts\/tile/, `${BASE_PATH}/tiles`),
             )
           }
         }
       }
 
+      if (style.sprite) {
+        style.sprite = style.sprite.replace(
+          /^https:\/\/api\.os\.uk\/maps\/vector\/v1\/vts\/resources/,
+          `${BASE_PATH}/assets`,
+        )
+      }
+      if (style.glyphs) {
+        style.glyphs = style.glyphs.replace(
+          /^https:\/\/api\.os\.uk\/maps\/vector\/v1\/vts\/resources/,
+          `${BASE_PATH}/assets`,
+        )
+      }
+
       res.json(style)
-    } catch (error) {
-      console.error('[os-auth] Failed to fetch or rewrite OS style:', error)
-      next(error)
+    } catch (err) {
+      console.error('[os-auth] Failed to fetch or rewrite OS style:', err)
+      next(err)
     }
   })
 
-  // Tile endpoint (e.g. /os-map/vector/tiles/{z}/{x}/{y}.pbf?srs=3857)
-  router.get('/vector/tiles/:z/:x/:y.pbf', async (req, res, next) => {
-    const { z, x, y } = req.params
-    const srs = req.query.srs || '3857'
-    const url = `${vectorRoot}/tile/${z}/${y}/${x}.pbf?srs=${srs}`
-    await fetchFromOrdnanceSurvey(req, res, next, url)
+  // Vector source endpoint
+  router.get(`${BASE_PATH}/source`, async (_req, res, next) => {
+    try {
+      const token = await getAccessToken(options)
+
+      // Fetch the style first to discover the correct source URL
+      const styleUrl = `${vectorRoot}/resources/styles?srs=3857`
+      const styleRes = await fetch(styleUrl, { headers: { Authorization: `Bearer ${token}` } })
+      if (!styleRes.ok) {
+        const text = await styleRes.text()
+        console.error(`[os-auth] Error fetching Ordnance Survey style JSON (${styleRes.status}): ${text}`)
+        return res.status(styleRes.status).send(text)
+      }
+
+      const style = (await styleRes.json()) as MapboxStyle
+      const firstSource = Object.values(style.sources || {})[0]
+      if (!firstSource || typeof firstSource.url !== 'string') {
+        throw new Error('Could not determine vector source URL from style JSON')
+      }
+
+      const sourceUrl = firstSource.url
+      console.log('[os-auth] Fetching vector source from:', sourceUrl)
+
+      // Fetch that source directly
+      const osRes = await fetch(sourceUrl, { headers: { Authorization: `Bearer ${token}` } })
+      if (!osRes.ok) {
+        const text = await osRes.text()
+        console.error(`[os-auth] Vector source fetch failed (${osRes.status}): ${text}`)
+        return res.status(osRes.status).send(text)
+      }
+
+      // Rewrite tile URLs
+      const json = await osRes.json()
+      if (json.tiles && Array.isArray(json.tiles)) {
+        json.tiles = json.tiles.map((tile: string) =>
+          tile.replace(/^https:\/\/api\.os\.uk\/maps\/vector\/v1\/vts\/tile/, `${BASE_PATH}/tiles`),
+        )
+      }
+
+      return res.json(json)
+    } catch (err) {
+      console.error('[os-auth] Failed to fetch vector source:', err)
+      return next(err)
+    }
   })
 
-  // Assets endpoint (fonts and resources, etc.)
-  router.get('/vector/assets/*', async (req: Request<{ 0: string }>, res, next) => {
+  // Tile endpoint
+  router.get(`${BASE_PATH}/tiles/:z/:x/:y.pbf`, async (req, res, next) => {
+    const { z, x, y } = req.params
+    const srs = req.query.srs || '3857'
+    const token = await getAccessToken(options)
+    const url = `${vectorRoot}/tile/${z}/${x}/${y}.pbf?srs=${srs}`
+    await fetchFromOrdnanceSurvey(req, res, next, url, token)
+  })
+
+  // Assets endpoint (fonts and resources)
+  router.get(`${BASE_PATH}/assets/*`, async (req: Request<{ 0: string }>, res, next) => {
     const assetPath = req.params[0]
+    const token = await getAccessToken(options)
     const url = `${vectorRoot}/resources/${assetPath}`
-    await fetchFromOrdnanceSurvey(req, res, next, url)
+    await fetchFromOrdnanceSurvey(req, res, next, url, token)
   })
 
   return router

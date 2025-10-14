@@ -30,7 +30,7 @@ export default class FeatureOverlay extends Overlay {
         },
         margin: 80,
       },
-      offset: [0, 22],
+      offset: [0, 0],
       positioning: 'top-center',
       stopEvent: true,
     })

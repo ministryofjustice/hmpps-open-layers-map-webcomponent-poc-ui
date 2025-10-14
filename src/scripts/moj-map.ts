@@ -112,8 +112,8 @@ export class MojMap extends HTMLElement {
 
   private parseAttributes(): MojMapOptions {
     const renderer: MapLibrary = this.getAttribute('renderer') === 'maplibre' ? 'maplibre' : 'openlayers'
-    const vectorUrlAttr = this.getAttribute('vector-url')
-    const vectorUrl = vectorUrlAttr && vectorUrlAttr.trim() ? vectorUrlAttr : '/os-map/vector/style'
+    const vectorAttr = this.getAttribute('vector-url') || this.getAttribute('vector-test-url')
+    const vectorUrl = vectorAttr && vectorAttr.trim() ? vectorAttr : '/os-map/vector/style'
 
     return {
       renderer,

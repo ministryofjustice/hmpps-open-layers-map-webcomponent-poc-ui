@@ -1,4 +1,4 @@
-import { setupOpenLayersMap, resolveFinalStyleUrl } from './setup-openlayers-map'
+import { setupOpenLayersMap } from './setup-openlayers-map'
 import { OLMapInstance } from '../open-layers-map-instance'
 import type { OLMapOptions } from '../open-layers-map-instance'
 import MapPointerInteraction from '../interactions/map-pointer-interaction'
@@ -68,17 +68,5 @@ describe('setupOpenLayersMap', () => {
     })
 
     expect(addInteraction).not.toHaveBeenCalledWith(expect.any(MapPointerInteraction))
-  })
-})
-
-describe('resolveFinalStyleUrl', () => {
-  it('returns the provided URL without trailing slash', () => {
-    const result = resolveFinalStyleUrl('https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857/')
-    expect(result).toBe('https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857')
-  })
-
-  it('defaults to /os-map/vector/style if no URL provided', () => {
-    const result = resolveFinalStyleUrl(undefined)
-    expect(result).toBe('/os-map/vector/style')
   })
 })

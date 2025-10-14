@@ -1,11 +1,13 @@
 import { fromLonLat, transformExtent } from 'ol/proj'
 
+// UK projected extent and centre
 const ukProjectedBounds = [-9.01, 49.75, 2.01, 61.01]
 const ukCentre = [-2.547855, 54.00366]
 
-const VITE_OS_MAPS_VECTOR_ROOT = (
-  import.meta.env.VITE_OS_MAPS_VECTOR_URL ?? 'https://api.os.uk/maps/vector/v1/vts'
-).replace(/\/$/, '')
+const authUrl = import.meta.env.VITE_OS_MAPS_AUTH_URL || 'https://api.os.uk/oauth2/token/v1'
+const OS_MAPS_VECTOR_BASE_URL = import.meta.env.VITE_OS_MAPS_VECTOR_BASE_URL || 'https://api.os.uk/maps/vector/v1'
+const vectorRoot = `${OS_MAPS_VECTOR_BASE_URL.replace(/\/$/, '')}/vts`
+const localBasePath = '/os-map/vector'
 
 const config = {
   view: {
@@ -19,8 +21,11 @@ const config = {
   tiles: {
     zoom: { min: 7, max: 20 },
     urls: {
-      vectorStyleUrl: `${VITE_OS_MAPS_VECTOR_ROOT}/resources/styles?srs=3857`,
-      vectorSourceUrl: VITE_OS_MAPS_VECTOR_ROOT,
+      authUrl,
+      localBasePath,
+      localVectorStyleUrl: `${localBasePath}/style`,
+      vectorStyleUrl: `${vectorRoot}/resources/styles?srs=3857`,
+      vectorSourceUrl: vectorRoot,
     },
   },
 }
