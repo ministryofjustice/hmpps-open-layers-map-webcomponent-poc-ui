@@ -10,6 +10,7 @@ import type { ComposableLayer, LayerStateOptions } from './map/layers/base'
 import { type MapAdapter, type MapLibrary, createOpenLayersAdapter, createMapLibreAdapter } from './map/map-adapter'
 import styles from '../styles/moj-map.raw.css?raw'
 import Position from './map/types/position'
+import config from './map/config'
 
 type MojMapControls = OLMapOptions['controls'] & {
   enable3DBuildings?: boolean
@@ -113,7 +114,7 @@ export class MojMap extends HTMLElement {
   private parseAttributes(): MojMapOptions {
     const renderer: MapLibrary = this.getAttribute('renderer') === 'maplibre' ? 'maplibre' : 'openlayers'
     const vectorAttr = this.getAttribute('vector-url') || this.getAttribute('vector-test-url')
-    const vectorUrl = vectorAttr && vectorAttr.trim() ? vectorAttr : '/os-map/vector/style'
+    const vectorUrl = vectorAttr && vectorAttr.trim() ? vectorAttr : config.tiles.urls.localVectorStyleUrl
 
     return {
       renderer,

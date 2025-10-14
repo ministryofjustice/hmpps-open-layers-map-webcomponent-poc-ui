@@ -19,6 +19,7 @@ const config = {
     },
   },
   tiles: {
+    srs: '3857',
     zoom: { min: 7, max: 20 },
     urls: {
       authUrl,
