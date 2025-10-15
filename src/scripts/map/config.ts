@@ -28,6 +28,7 @@ const config = {
       vectorStyleUrl: `${vectorRoot}/resources/styles?srs=3857`,
       vectorSourceUrl: vectorRoot,
     },
+    cacheExpirySeconds: 604800, // 7 days
   },
 }
 

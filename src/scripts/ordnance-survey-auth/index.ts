@@ -3,6 +3,7 @@ import config from '../map/config'
 import { getAccessToken } from './auth'
 import { fetchFromOrdnanceSurvey } from './fetch'
 import { rewriteStyleUrls, rewriteVectorSource } from './rewrite-os-urls'
+import { TileCache, type CacheClient } from './tile-cache'
 
 export interface MapboxStyle {
   version?: number
@@ -22,6 +23,8 @@ export interface MapboxSource {
 export interface OrdnanceSurveyAuthOptions {
   apiKey: string
   apiSecret: string
+  redisClient?: CacheClient
+  cacheExpiry?: number
 }
 
 export type CachedToken = {
@@ -38,6 +41,11 @@ export function mojOrdnanceSurveyAuth(options: OrdnanceSurveyAuthOptions): Route
   const vectorBaseUrl = config.tiles.urls.vectorSourceUrl.replace(/\/vts$/, '')
   const vectorRoot = `${vectorBaseUrl}/vts`
   const router = express.Router()
+
+  // Determine cache expiry (use app override or map config default)
+  // Only create a TileCache if caching is enabled
+  const cacheExpiry = options.cacheExpiry ?? config.tiles.cacheExpirySeconds ?? 0
+  const cache = cacheExpiry > 0 ? new TileCache({ redisClient: options.redisClient, cacheExpiry }) : undefined
 
   // Style JSON endpoint
   router.get(`${BASE_PATH}/style`, async (_req, res, next) => {
@@ -107,7 +115,7 @@ export function mojOrdnanceSurveyAuth(options: OrdnanceSurveyAuthOptions): Route
     const srs = req.query.srs || config.tiles.srs
     const token = await getAccessToken(options)
     const url = `${vectorRoot}/tile/${z}/${x}/${y}.pbf?srs=${srs}`
-    await fetchFromOrdnanceSurvey(req, res, next, url, token)
+    await fetchFromOrdnanceSurvey(req, res, next, url, token, { cache, cacheKeyPrefix: 'tile' })
   })
 
   // Assets endpoint (fonts and resources)
@@ -115,7 +123,7 @@ export function mojOrdnanceSurveyAuth(options: OrdnanceSurveyAuthOptions): Route
     const assetPath = req.params[0]
     const token = await getAccessToken(options)
     const url = `${vectorRoot}/resources/${assetPath}`
-    await fetchFromOrdnanceSurvey(req, res, next, url, token)
+    await fetchFromOrdnanceSurvey(req, res, next, url, token, { cache, cacheKeyPrefix: 'tile' })
   })
 
   return router
