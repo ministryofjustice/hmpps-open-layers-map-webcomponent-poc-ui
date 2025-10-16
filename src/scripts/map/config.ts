@@ -4,8 +4,23 @@ import { fromLonLat, transformExtent } from 'ol/proj'
 const ukProjectedBounds = [-9.01, 49.75, 2.01, 61.01]
 const ukCentre = [-2.547855, 54.00366]
 
-const authUrl = import.meta.env.VITE_OS_MAPS_AUTH_URL || 'https://api.os.uk/oauth2/token/v1'
-const OS_MAPS_VECTOR_BASE_URL = import.meta.env.VITE_OS_MAPS_VECTOR_BASE_URL || 'https://api.os.uk/maps/vector/v1'
+// Fallback for both Node/Jest and Vite
+const getEnv = (): Record<string, string | undefined> => {
+  try {
+    // eslint-disable-next-line no-new-func
+    const meta = new Function('return import.meta')()
+    return meta.env ?? process.env
+  } catch {
+    return process.env
+  }
+}
+
+const env = getEnv()
+
+const OS_MAPS_VECTOR_BASE_URL = env.VITE_OS_MAPS_VECTOR_BASE_URL || 'https://api.os.uk/maps/vector/v1'
+
+const authUrl = env.VITE_OS_MAPS_AUTH_URL || 'https://api.os.uk/oauth2/token/v1'
+
 const vectorRoot = `${OS_MAPS_VECTOR_BASE_URL.replace(/\/$/, '')}/vts`
 const localBasePath = '/os-map/vector'
 

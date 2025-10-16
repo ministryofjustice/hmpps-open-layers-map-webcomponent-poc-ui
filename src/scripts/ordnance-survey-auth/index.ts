@@ -38,13 +38,14 @@ const BASE_PATH = config.tiles.urls.localBasePath
 
 // Express middleware for securely fetching Ordnance Survey vector tiles and assets via OAuth2
 export function mojOrdnanceSurveyAuth(options: OrdnanceSurveyAuthOptions): Router {
+  const isProduction = process.env.NODE_ENV === 'production'
   const vectorBaseUrl = config.tiles.urls.vectorSourceUrl.replace(/\/vts$/, '')
   const vectorRoot = `${vectorBaseUrl}/vts`
   const router = express.Router()
 
   // Determine cache expiry (use app override or map config default)
-  // Only create a TileCache if caching is enabled
-  const cacheExpiry = options.cacheExpiry ?? config.tiles.cacheExpirySeconds ?? 0
+  const defaultExpiry = isProduction ? (config.tiles.cacheExpirySeconds ?? 604800) : 0
+  const cacheExpiry = typeof options.cacheExpiry === 'number' ? options.cacheExpiry : defaultExpiry
   const cache = cacheExpiry > 0 ? new TileCache({ redisClient: options.redisClient, cacheExpiry }) : undefined
 
   // Style JSON endpoint

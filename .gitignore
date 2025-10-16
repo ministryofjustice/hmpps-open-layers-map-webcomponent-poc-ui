@@ -11,12 +11,14 @@ node_modules/
 # Lint / tooling caches
 .eslintcache
 
-# Test coverage
+# Test output
 coverage/
+test_results/
 
 # IDEs / OS
-.vscode/
-.DS_Store
+.idea
+.vscode
+**/.DS_Store
 
 # Env files
 .env

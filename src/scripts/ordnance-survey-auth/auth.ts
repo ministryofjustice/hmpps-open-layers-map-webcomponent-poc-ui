@@ -4,7 +4,7 @@ import type { CachedToken, OrdnanceSurveyAuthOptions } from './index'
 let cachedToken: CachedToken | null = null
 
 // Check if the token is expired or about to expire (within 60 seconds)
-function isTokenExpired(token: { issued_at: number; expires_in: number }): boolean {
+export function isTokenExpired(token: { issued_at: number; expires_in: number }): boolean {
   const expiryTime = token.issued_at + token.expires_in * 1000
   return Date.now() >= expiryTime - 60_000
 }
