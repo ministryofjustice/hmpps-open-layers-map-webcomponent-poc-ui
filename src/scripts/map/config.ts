@@ -6,16 +6,18 @@ const ukCentre = [-2.547855, 54.00366]
 
 // Fallback for both Node/Jest and Vite
 const getEnv = (): Record<string, string | undefined> => {
-  try {
-    // eslint-disable-next-line no-new-func
-    const meta = new Function('return import.meta')()
-    return meta.env ?? process.env
-  } catch {
+  if (typeof import.meta !== 'undefined' && 'env' in import.meta) {
+    return import.meta.env as Record<string, string | undefined>
+  }
+
+  if (typeof process !== 'undefined' && process.env) {
     return process.env
   }
+
+  return {}
 }
 
-const env = getEnv()
+export const env = getEnv()
 
 const OS_MAPS_VECTOR_BASE_URL = env.VITE_OS_MAPS_VECTOR_BASE_URL || 'https://api.os.uk/maps/vector/v1'
 

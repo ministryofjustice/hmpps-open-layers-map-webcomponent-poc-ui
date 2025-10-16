@@ -26,12 +26,6 @@
     </div>
   {% endif %}
 
-  {% if params.geoJson is defined and params.geoJson %}
-    <script type="application/json" slot="geojson-data">
-      {{ params.geoJson | dump | safe }}
-    </script>
-  {% endif %}
-
   {% if params.positions is defined and params.positions %}
     <script type="application/json" slot="position-data">
       {{ params.positions | dump | safe }}
