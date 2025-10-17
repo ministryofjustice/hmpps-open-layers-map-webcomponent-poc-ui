@@ -2,7 +2,8 @@ import crypto from 'crypto'
 
 export interface CacheClient {
   get(key: string): Promise<string | null>
-  set(key: string, value: string, options?: { EX?: number }): Promise<void>
+  set(key: string, value: string, options?: { EX?: number }): Promise<void | string | null>
+  connect?(): Promise<void | CacheClient>
 }
 
 // Optional shared cache for OS resources (tiles, styles, glyphs, sprites).

@@ -118,66 +118,7 @@ Render the element with the macro:
 {% endraw %}
 ```
 
----
-
-## 4) CSP (Content Security Policy)
-
-- Inline **styles** added by the component use the `csp-nonce` attribute on `<moj-map>`. Ensure `style-src` includes `'nonce-<value>'`.
-- The `<script type="application/json">` data block **does not execute**, so it **does not** require a nonce.
-- Typical Helmet additions:
-
-```ts
-import helmet from 'helmet'
-import express from 'express'
-const router = express.Router()
-
-router.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    contentSecurityPolicy: {
-      directives: {
-        connectSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'blob:'],
-        styleSrc: ["'self'", (_req, res) => `'nonce-${res.locals.cspNonce}'`],
-        fontSrc: ["'self'"],
-        styleSrcAttr: ["'unsafe-inline'"],
-      },
-    },
-  }),
-)
-```
-
----
-
-## Element Usage (raw HTML)
-
-You can also embed the web component directly. Ensure the host element has a **non-zero height** (OpenLayers won’t render otherwise).
-
-```njk
-{% raw %}
-<moj-map
-  uses-internal-overlays
-  csp-nonce="{{ params.cspNonce }}"
-  renderer="maplibre"
-  scale-control="bar"
-  location-display="dms"
-  rotate-control="true"
-  zoom-slider
-  grab-cursor
-  enable-3d-buildings
->
-  <!-- Optional: alert content -->
-  <div slot="alerts" class="moj-map__alerts">
-    <!-- app-provided alerts go here -->
-  </div>
-
-  <!-- Positions data -->
-  <script type="application/json" slot="position-data">
-    {{ params.positions | dump | safe }}
-  </script>
-</moj-map>
-{% endraw %}
-```
+Ensure the host element has a **non-zero height** (OpenLayers won’t render otherwise).
 
 **Host CSS height example:**
 
@@ -186,6 +127,36 @@ You can also embed the web component directly. Ensure the host element has a **n
   height: 450px;
 }
 ```
+
+---
+
+## 4) CSP (Content Security Policy)
+
+In your `server/app.ts`, update the Helmet configuration to include `cdn.jsdelivr.net` in both the `style-src` and `font-src` directives, and allow inline styles for OpenLayers’ dynamic controls (e.g. scale bar updates):
+
+```ts
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
+        styleSrc: ["'self'", 'cdn.jsdelivr.net', "'unsafe-inline'"], // Change this
+        fontSrc: ["'self'", 'cdn.jsdelivr.net'], // Change this
+        imgSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'"],
+      },
+    },
+  }),
+)
+```
+
+### Why this is needed
+
+- **`cdn.jsdelivr.net`** — allows the browser to load OpenLayers’ `@fontsource` CSS and font files.
+- **`'unsafe-inline'`** — required because OpenLayers applies small inline `style` attributes (e.g. updating the width of the scale bar dynamically).
+
+This configuration keeps security strict for scripts (the `script-src` directive remains nonce-based) while allowing OpenLayers and MapLibre to function correctly.
 
 ---
 

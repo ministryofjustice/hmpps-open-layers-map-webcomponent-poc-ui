@@ -129,3 +129,5 @@ export function mojOrdnanceSurveyAuth(options: OrdnanceSurveyAuthOptions): Route
 
   return router
 }
+
+export type { CacheClient } from './tile-cache'
