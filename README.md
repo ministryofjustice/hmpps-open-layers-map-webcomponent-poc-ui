@@ -27,58 +27,100 @@ This component targets modern browsers only.
 
 # Getting Started with `<moj-map>`
 
-`<moj-map>` is an embeddable map component. It uses Ordnance Survey tiles by default and provides a small, typed API for adding layers from your app code.
+`<moj-map>` is an embeddable map component. It uses Ordnance Survey **vector tiles** by default via a small server middleware and provides a typed API for adding layers from your app code.
 
 ---
 
-## Installation
+## 1) Install
 
 ```bash
 npm install hmpps-open-layers-map
 ```
 
-Register the custom element (once, in your clientside app entry file). E.g in typescript template it would be assets/js/index.js:
+Register the custom element once (e.g. in your client entry file):
 
 ```ts
 import 'hmpps-open-layers-map'
 ```
 
-Optionally import types if you’ll interact with the map in TS:
+Optionally import types if you’ll interact with the map in TypeScript:
 
 ```ts
-import { MojMap } from 'hmpps-open-layers-map'
+import type { MojMap } from 'hmpps-open-layers-map'
 ```
 
 ---
 
-## Using with Nunjucks
+## 2) Server middleware (Ordnance Survey Vector Tiles API)
 
-Configure Nunjucks to include the component’s templates. E.g in typescript template it would be server/utils/nunjucksSetup.ts:
+This package exports an Express middleware that securely proxies Ordnance Survey Vector Tiles (OAuth2 + caching).  
+Mount it in your server app, e.g.:
 
-```js
+```ts
+// server/os-vector.ts
+import express from 'express'
+import { mojOrdnanceSurveyAuth } from 'hmpps-open-layers-map/server'
+
+const router = express.Router()
+
+router.use(
+  mojOrdnanceSurveyAuth({
+    apiKey: process.env.OS_API_KEY!, // from OS
+    apiSecret: process.env.OS_API_SECRET!, // from OS
+    // Optional: Redis cache + expiry override
+    // redisClient: connectedRedisClient, // connected redis client
+    // cacheExpiry: 3600, // seconds; default is 7 days in production, 0 in dev
+  }),
+)
+
+export default router
+```
+
+Then mount that router in your app:
+
+```ts
+// server/app.ts
+import express from 'express'
+import osVector from './os-vector'
+
+const app = express()
+app.use(osVector)
+```
+
+### Notes
+
+- **cacheExpiry**: In production the default is **7 days** (can be overridden). In development it defaults to **0** (no caching) unless you set a value.
+- If you provide a redisClient, the middleware enables server-side caching for tiles and static assets (glyphs/sprites).
+
+It also sets ETag and Cache-Control headers so browsers can handle their own client-side caching and revalidation.
+
+---
+
+## 3) Nunjucks setup
+
+Point Nunjucks at the component templates:
+
+```ts
+// e.g. server/utils/nunjucksSetup.ts
 nunjucks.configure(['<your-app-views>', 'node_modules/hmpps-open-layers-map/nunjucks'])
 ```
 
-Render the element and include data:
+Render the element with the macro:
 
 ```njk
+{% raw %}
 {% from "components/moj-map/macro.njk" import mojMap %}
 
-<div class="map-container">
-  {{ mojMap({
-    apiKey: apiKey,
-    cspNonce: cspNonce
-  }) }}
-</div>
+{{ mojMap({
+  alerts: params.alerts,
+  cspNonce: params.cspNonce
+}) }}
+{% endraw %}
 ```
 
----
+Ensure the host element has a **non-zero height** (OpenLayers won’t render otherwise).
 
-## Set a height on the element that contains the mojMap Nunjucks component (OpenLayers)
-
-If you see this message in the console, "No map visible because the map container's width or height are 0.", it means a CSS height needs to be set on the element containing the mojMap Nunjucks component. Without it, OpenLayers will not instantiate a map instance on the element.
-
-Using the example above, you could add something like
+**Host CSS height example:**
 
 ```scss
 .map-container {
@@ -86,167 +128,101 @@ Using the example above, you could add something like
 }
 ```
 
-## API Key and Vector Tiles
-
-When using **vector tiles**, the Ordnance Survey API requires an access key.
-
-### Example (using `apiKey`)
-
-```njk
-{{ mojMap({
-  cspNonce: cspNonce,
-  apiKey: apiKey
-}) }}
-```
-
 ---
 
-## CSP (Content Security Policy)
+## 4) CSP (Content Security Policy)
 
-- Inline **styles** added by the component use the `csp-nonce` attribute on `<moj-map>`. Ensure `style-src` includes `'nonce-<value>'`.
-- The `<script type="application/json">` data block **does not execute**, so it **does not** require a nonce.
-- Typical additions (OS tiles etc.) with Helmet.
-- In typescript template it would be server/middleware/setUpWebSecurity.ts (Amend and add as appropriate):
+In your `server/app.ts`, update the Helmet configuration to include `cdn.jsdelivr.net` in both the `style-src` and `font-src` directives, and allow inline styles for OpenLayers’ dynamic controls (e.g. scale bar updates):
 
 ```ts
-router.use(
+app.use(
   helmet({
-    crossOriginResourcePolicy: false,
     contentSecurityPolicy: {
       directives: {
-        connectSrc: ["'self'", 'api.os.uk'],
-        imgSrc: ["'self'", 'api.os.uk', 'data:', 'blob:'],
-        styleSrc: ["'self'", 'cdn.jsdelivr.net', (_req, res) => `'nonce-${res.locals.cspNonce}'`],
-        fontSrc: ["'self'", 'cdn.jsdelivr.net'],
-        styleSrcAttr: ["'unsafe-inline'"],
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`],
+        styleSrc: ["'self'", 'cdn.jsdelivr.net', "'unsafe-inline'"], // Change this
+        fontSrc: ["'self'", 'cdn.jsdelivr.net'], // Change this
+        imgSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'"],
       },
     },
   }),
 )
 ```
 
+### Why this is needed
+
+- **`cdn.jsdelivr.net`** — allows the browser to load OpenLayers’ `@fontsource` CSS and font files.
+- **`'unsafe-inline'`** — required because OpenLayers applies small inline `style` attributes (e.g. updating the width of the scale bar dynamically).
+
+This configuration keeps security strict for scripts (the `script-src` directive remains nonce-based) while allowing OpenLayers and MapLibre to function correctly.
+
 ---
 
-## Choosing a Renderer (OpenLayers vs MapLibre)
+## Macro Parameters (updated)
 
-- **OpenLayers** (default) — great for 2D overlays.
-- **MapLibre GL** (`renderer="maplibre"`) — enables tilt/3D buildings, etc.
+| Parameter              | Type / Values                | Description                                                               |
+| ---------------------- | ---------------------------- | ------------------------------------------------------------------------- |
+| `positions`            | Array                        | **New** input data for the map                                            |
+| `usesInternalOverlays` | boolean                      | If true, enables built-in overlay and pointer interaction.                |
+| `cspNonce`             | string                       | Optional CSP nonce used by inline styles.                                 |
+| `renderer`             | `'openlayers' \| 'maplibre'` | Select rendering library (default `'openlayers'`).                        |
+| `controls`             | object                       | Map controls config (see below).                                          |
+| `enable3DBuildings`    | boolean                      | MapLibre only: adds a 🏙 toggle for 3D buildings.                         |
+| `alerts`               | array                        | Optional list of Moj Design System alerts to render into the alerts slot. |
 
-### Example (force MapLibre)
+### `controls` object
 
-````njk
+| Property          | Type / Values                  | Description                                                              |
+| ----------------- | ------------------------------ | ------------------------------------------------------------------------ |
+| `grabCursor`      | boolean                        | If true (default), shows MapLibre-style `grab`/`grabbing` cursor on pan. |
+| `rotateControl`   | `true \| false \| 'auto-hide'` | Show the rotate/compass control; `'auto-hide'` hides it until rotated.   |
+| `zoomSlider`      | boolean                        | Show the zoom slider.                                                    |
+| `scaleControl`    | `'bar' \| 'line' \| false`     | Scale bar/line.                                                          |
+| `locationDisplay` | `'dms' \| 'latlon' \| false`   | Coordinate readout at the bottom near the scale bar.                     |
+
+---
+
+## Component Attributes (for raw HTML)
+
+| Attribute                | Type / Values                | Description                                     |
+| ------------------------ | ---------------------------- | ----------------------------------------------- |
+| `uses-internal-overlays` | boolean                      | Enables built-in overlay + pointer interaction. |
+| `csp-nonce`              | string                       | Nonce for inline styles.                        |
+| `renderer`               | `openlayers \| maplibre`     | Renderer choice (default `openlayers`).         |
+| `rotate-control`         | `false \| auto-hide \| true` | Rotate/compass control.                         |
+| `zoom-slider`            | boolean (presence enables)   | Zoom slider control.                            |
+| `scale-control`          | `bar \| line`                | Scale control style.                            |
+| `location-display`       | `dms \| latlon`              | Coordinate readout style.                       |
+| `enable-3d-buildings`    | boolean (presence enables)   | MapLibre only: toggle for 3D buildings.         |
+| `grab-cursor`            | boolean (presence enables)   | MapLibre-style panning cursor.                  |
+
+---
+
+## Example (Nunjucks)
+
+```njk
+{% raw %}
 {% from "components/moj-map/macro.njk" import mojMap %}
 
 {{ mojMap({
-  cspNonce: cspNonce,
-  geoJSON: geoJSON,
-  renderer: "maplibre",             // force MapLibre instead of OpenLayers
-  vectorUrl: "https://api.os.uk/maps/vector/v1/vts",
-  enable3DBuildings: true,          // adds the buildings toggle button if using MapLibre
-  controls: {
-    scaleControl: "bar",
-    locationDisplay: "latlon",
-    rotateControl: "true",
-    zoomSlider: true,
-    grabCursor: false,
-  }
-}) }}
-
----
-
-## Nunjucks Macro Parameters
-
-The `mojMap()` macro accepts a config object using the following keys:
-
-| Parameter               | Type / Values                                     | Description                                                                 |
-|-------------------------|---------------------------------------------------|-----------------------------------------------------------------------------|
-| `grabCursor`            | boolean                                           | If true (default), uses MapLibre-style `grab` / `grabbing` mouse cursor while panning. |
-| `points`                | Array                                             | Optional array of point features.                                           |
-| `lines`                 | Array                                             | Optional array of line features.                                            |
-| `usesInternalOverlays`  | boolean                                           | If true, enables built-in overlay and pointer interaction.                  |
-| `cspNonce`              | string                                            | Optional CSP nonce to allow inline styles.                                  |
-| `tileType`              | `'vector'` \| `'raster'`                          | Optional. Defaults to `'vector'` if WebGL is supported.                     |
-| `tileUrl`               | string                                            | Optional custom raster tile URL (`{z}/{x}/{y}`).                            |
-| `vectorUrl`             | string                                            | Optional custom vector style base URL. The component appends `/resources/styles` internally. |
-| `renderer`              | `'openlayers'` \| `'maplibre'`                    | Selects which rendering library to use. Default is `'openlayers'`.          |
-
-### Control Parameters
-
-| Parameter            | Type / Values                         | Description                                                                 |
-|----------------------|----------------------------------------|-----------------------------------------------------------------------------|
-| `grab-cursor`        | boolean attribute (`''` to enable, `false` to disable) | shown by default | Enables MapLibre-style `grab` / `grabbing` cursor while dragging the map. Disable to fall back to browser defaults. |
-| `rotateControl`      | `true` \| `'auto-hide'` \| `false`     | Show the rotate/compass control. `'auto-hide'` hides it unless rotated.     |
-| `zoomSlider`         | boolean                                | If true, shows the zoom slider.                                             |
-| `scaleControl`       | `'bar'` \| `'line'` \| `false`         | If defined, shows a scale bar or line.                                      |
-| `locationDisplay`    | `'dms'` \| `'latlon'` \| `false`       | Shows a coordinate readout near the scale bar.                              |
-| `locationSource`     | `'pointer'` \| `'centre'`              | Where to read coordinates from. `'pointer'` tracks the mouse.               |
-| `enable3DBuildings`  | boolean                                | MapLibre only: adds a 🏙 control button to toggle 3D building extrusions on/off. |
-
----
-
-*For raw HTML component usage and attribute-level control, see [Component Attributes](#component-attributes).*
-
----
-
-## Component Attributes
-
-| Attribute                | Type / Values                                     | Description                                                                 |
-| ------------------------ | ------------------------------------------------- | --------------------------------------------------------------------------- |
-| `points`                 | JSON string                                       | Optional array of point features.                                           |
-| `lines`                  | JSON string                                       | Optional array of line features.                                            |
-| `uses-internal-overlays` | boolean attribute                                 | If present, enables built-in overlay and pointer interaction.               |
-| `csp-nonce`              | string                                            | Optional nonce value to allow inline styles under CSP.                      |
-| `tile-type`              | `vector` \| `raster`                              | Optional. Set `raster` to force raster mode; default resolves to `vector` if WebGL is available. |
-| `tile-url`               | URL template                                      | Optional custom raster tile URL (`{z}/{x}/{y}`).                            |
-| `vector-url`             | URL                                               | Optional custom vector style base URL (the component appends the style path and key). |
-| `renderer`               | `openlayers` \| `maplibre`                        | Selects which rendering library to use. Default is `openlayers`.            |
-
-### Control Attributes
-
-| Attribute               | Type / Values                                     | Default       | Description                                                                                          |
-| ----------------------- | ------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------- |
-| `rotate-control`        | `false` \| `auto-hide` \| `true` (or omit)        | `true`        | Show the rotate/compass control. `auto-hide` hides it until the map is rotated.                      |
-| `zoom-slider`           | boolean attribute (`''` to enable, `false` to disable) | not shown     | Show the zoom slider control between zoom-in and zoom-out.                                           |
-| `scale-control`         | `bar` \| `line` \| `false` (or omit)              | not shown     | `bar` shows a segmented scale bar; `line` shows a simple scale line. Omit to hide.                   |
-| `location-display`      | `dms` \| `latlon` \| `false` (or omit)            | not shown     | Show a coordinate readout near the scale bar. `dms` shows degrees/minutes/seconds; `latlon` shows decimal degrees with hemisphere suffixes. |
-| `location-source`       | `pointer` \| `centre`                              | `pointer`     | Where to read coordinates from. `pointer` updates as the mouse moves; `centre` updates on pan/zoom end. |
-| `enable-3d-buildings`   | boolean attribute                                 | not shown     | MapLibre only: adds a 🏙 control button to toggle 3D building extrusions on/off.                      |
-
-Notes:
-- Boolean attributes follow HTML rules: presence enables, `attribute="false"` disables.
-- The location display and scale bar are positioned at the bottom by default and can be adjusted with CSS.
-
----
-
-## Examples
-
-### Basic map with controls (Nunjucks)
-
-```njk
-{% from "moj-map/macro.njk" import mojMap %}
-
-{{ mojMap({
+  alerts: params.alerts,
   cspNonce: params.cspNonce,
-  geoData: {
-    points: params.geoData.points,
-    lines: params.geoData.lines
-  },
+  positions: params.positions,
   usesInternalOverlays: true,
-
-  // Choose renderer: 'openlayers' (default) or 'maplibre'
   renderer: 'maplibre',
-
   controls: {
-    scaleControl: 'bar',          // 'bar' | 'line'
-    locationDisplay: 'dms',       // 'dms' | 'latlon'
-    locationSource: 'pointer',    // 'pointer' (default) | 'centre'
-    rotateControl: 'auto-hide',   // 'false' | 'auto-hide' | 'true'
+    scaleControl: 'bar',
+    locationDisplay: 'dms',
+    rotateControl: 'auto-hide',
     zoomSlider: true,
-    grabCursor: false,
-    enable3DBuildings: true       // MapLibre only: adds 🏙 button to toggle 3D buildings
-  }
+    grabCursor: false
+  },
+  enable3DBuildings: true
 }) }}
-````
+{% endraw %}
+```
 
 ---
 
@@ -255,7 +231,7 @@ Notes:
 The component fires **`map:ready`** once initialised:
 
 ```ts
-import { MojMap } from 'hmpps-open-layers-map'
+import type { MojMap } from 'hmpps-open-layers-map'
 
 const mojMap = document.querySelector('moj-map') as MojMap
 
@@ -263,21 +239,24 @@ await new Promise<void>(resolve => {
   mojMap.addEventListener('map:ready', () => resolve(), { once: true })
 })
 
-const map = mojMap.olMapInstance // OpenLayers Map (if OL renderer)
-const geoJson = mojMap.geojson // OpenLayers FeatureCollection
+// OpenLayers map instance (if using OpenLayers renderer)
+const map = mojMap.olMapInstance
+
+// The positions payload you provided
+const positions = mojMap.positions
 ```
 
 ---
 
-## Adding Layers
+## Adding Layers (OpenLayers renderer)
 
 Import layer classes from `hmpps-open-layers-map/layers`.
 
 Each layer accepts:
 
 - `geoJson` — your `FeatureCollection`
-- `visible?: boolean` — default varies per layer (see below)
-- `zIndex?: number` — draw order (higher draws on top)
+- `visible?: boolean`
+- `zIndex?: number`
 - Other layer-specific options
 
 ### Available layers
@@ -289,10 +268,10 @@ Each layer accepts:
 - `CirclesLayer` — renders **Point** features as **Circle** geometries with radius read from a property (e.g. `"confidence"`).
 - `NumberingLayer` — paints numbers as text labels next to points.
 
-### Full example (end-to-end)
+### Full example
 
 ```ts
-import { MojMap } from 'hmpps-open-layers-map'
+import type { MojMap } from 'hmpps-open-layers-map'
 import { LocationsLayer, TracksLayer, CirclesLayer, NumberingLayer } from 'hmpps-open-layers-map/layers'
 import { isEmpty } from 'ol/extent'
 
@@ -303,17 +282,13 @@ await new Promise<void>(resolve => {
 })
 
 const map = mojMap.olMapInstance!
-const geoJson = mojMap.geojson
-if (!geoJson) throw new Error('No GeoJSON in <moj-map>')
+const geoJson = mojMap.geojson // if your positions are exposed as GeoJSON
+if (!geoJson) throw new Error('No GeoJSON/positions provided to <moj-map>')
 
-// 1) Locations (points)
-const locationsLayer = mojMap.addLayer(
-  new LocationsLayer({
-    geoJson,
-  }),
-)!
+// 1) Locations
+const locationsLayer = mojMap.addLayer(new LocationsLayer({ geoJson }))!
 
-// 2) Tracks (lines + arrows grouped together)
+// 2) Tracks (lines + arrows)
 const tracksLayer = mojMap.addLayer(
   new TracksLayer({
     geoJson,
@@ -323,8 +298,8 @@ const tracksLayer = mojMap.addLayer(
   }),
 )!
 
-// 3) Confidence circles (radius from feature property)
-const confidenceLayer = mojMap.addLayer(
+// 3) Circles
+mojMap.addLayer(
   new CirclesLayer({
     geoJson,
     id: 'confidence',
@@ -335,8 +310,8 @@ const confidenceLayer = mojMap.addLayer(
   }),
 )
 
-// 4) Numbering (labels from feature property)
-const numbersLayer = mojMap.addLayer(
+// 4) Numbering
+mojMap.addLayer(
   new NumberingLayer({
     geoJson,
     numberProperty: 'sequenceNumber',
@@ -346,7 +321,7 @@ const numbersLayer = mojMap.addLayer(
   }),
 )
 
-// Fit view to locations (if any)
+// Fit view to locations
 const source = locationsLayer?.getSource()
 if (source) {
   const extent = source.getExtent()
@@ -419,42 +394,7 @@ if (source) {
 
 ---
 
-## Overlay Templating (optional)
-
-If you enable internal overlays (click to open), add a `<template>` in your page and set a property like `overlayTemplateId` on features you want clickable. The component will fill `{{ ... }}` tokens with top-level properties from the feature.
-
-```html
-<template id="overlay-template-location-point">
-  <div>
-    <strong>Speed:</strong> {{ displaySpeed }}<br />
-    <strong>Timestamp:</strong> {{ displayTimestamp }}
-  </div>
-</template>
-```
-
-Feature example:
-
-```json
-{
-  "type": "Feature",
-  "geometry": { "type": "Point", "coordinates": [-2.1, 53.5] },
-  "properties": {
-    "overlayTemplateId": "overlay-template-location-point",
-    "displaySpeed": "12.5 km/h",
-    "displayTimestamp": "2025-07-23 12:00:00"
-  }
-}
-```
-
-If using Nunjucks, wrap the template body with `{% raw %}…{% endraw %}` to avoid server-side interpolation.
-
----
-
-## CSS Requirements
-
-Make sure the host element has a **non-zero height**; otherwise OpenLayers can’t render.
-
-Some useful hooks:
+## CSS Hooks
 
 - Host classes toggled by attributes:
   - `.has-rotate-control`
@@ -474,33 +414,15 @@ moj-map {
 
 ---
 
-## TypeScript: Accessing Native Layers
+## Troubleshooting
 
-`mojMap.addLayer()` returns the **native** OpenLayers layer instance (e.g. `VectorLayer` or `LayerGroup`) so you can toggle visibility or attach your own controls easily:
+- **“No map visible because the map container's width or height are 0.”**  
+  Ensure the host container has an explicit height (e.g. `450px`).
 
-```ts
-const tracksGroup = mojMap.addLayer(new TracksLayer({ geoJson, visible: false }))!
-// Later:
-tracksGroup.setVisible(true)
-```
+- **CSP errors**  
+  Ensure you pass a `cspNonce` and include `'nonce-<value>'` in `style-src`.
+
+- **Vector tiles not loading**  
+  Confirm the server middleware is mounted and OS credentials are set. The UI talks to the local proxy automatically.
 
 ---
-
-## Example UI Toggle
-
-```ts
-import type Layer from 'ol/layer/Layer'
-import type LayerGroup from 'ol/layer/Group'
-import { MojMap } from 'hmpps-open-layers-map'
-
-function createLayerVisibilityToggle(selector: string, layer: Layer | LayerGroup, mojMap?: MojMap) {
-  const element = document.querySelector(selector) as HTMLInputElement | null
-  if (!element) return
-
-  element.addEventListener('change', () => {
-    const visible = layer.getVisible()
-    if (visible && mojMap) mojMap.closeOverlay?.()
-    layer.setVisible(!visible)
-  })
-}
-```

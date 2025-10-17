@@ -3,10 +3,6 @@
 <moj-map
   {% if params.usesInternalOverlays %}uses-internal-overlays{% endif %}
   csp-nonce="{{ params.cspNonce }}"
-  {% if params.tileType %}tile-type="{{ params.tileType }}"{% endif %}
-  {% if params.accessTokenUrl %}access-token-url="{{ params.accessTokenUrl }}"{% endif %}
-  {% if params.vectorUrl %}vector-url="{{ params.vectorUrl }}"{% endif %}
-  {% if params.tileUrl %}tile-url="{{ params.tileUrl }}"{% endif %}
   {% if params.apiKey %}api-key="{{ params.apiKey }}"{% endif %}
   {% if params.renderer %}renderer="{{ params.renderer }}"{% endif %}
   {% if params.controls.scaleControl %}scale-control="{{ params.controls.scaleControl }}"{% endif %}
@@ -28,12 +24,6 @@
         {{ mojAlert(alert) }}
       {% endfor %}
     </div>
-  {% endif %}
-
-  {% if params.geoJson is defined and params.geoJson %}
-    <script type="application/json" slot="geojson-data">
-      {{ params.geoJson | dump | safe }}
-    </script>
   {% endif %}
 
   {% if params.positions is defined and params.positions %}

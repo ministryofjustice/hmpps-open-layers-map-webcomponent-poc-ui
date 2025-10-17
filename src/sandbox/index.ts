@@ -13,8 +13,11 @@ let positionData
 
 const map = document.createElement('moj-map')
 
-const apiKey = import.meta.env.VITE_OS_API_KEY
-const signedVectorUrl = `${config.tiles.urls.vectorStyleUrl + (config.tiles.urls.vectorStyleUrl.includes('?') ? '&' : '?')}key=${apiKey}`
+const apiKey = import.meta.env.VITE_OS_MAPS_API_KEY ?? ''
+const vectorTestUrl = `${config.tiles.urls.vectorStyleUrl}${config.tiles.urls.vectorStyleUrl.includes('?') ? '&' : '?'}key=${apiKey}`
+
+// Sandbox requires explicit vector URL (safe, as only runs in localhost using env vars)
+map.setAttribute('vector-test-url', vectorTestUrl)
 
 // Use MapLibre (not OpenLayers)
 // map.setAttribute('renderer', 'maplibre')
@@ -23,9 +26,7 @@ const signedVectorUrl = `${config.tiles.urls.vectorStyleUrl + (config.tiles.urls
 map.setAttribute('enable-3d-buildings', '')
 
 // Core setup
-map.setAttribute('api-key', import.meta.env.VITE_OS_API_KEY)
-map.setAttribute('vector-url', signedVectorUrl)
-map.setAttribute('tile-url', config.tiles.urls.tileUrl)
+map.setAttribute('api-key', apiKey)
 map.setAttribute('csp-nonce', '1234abcd')
 map.setAttribute('uses-internal-overlays', '')
 
@@ -34,8 +35,8 @@ map.setAttribute('scale-control', 'bar')
 // Options:
 //   'bar'   → shows an OpenLayers ScaleBar (segmented ruler-style, better for visualising distances)
 //   'line'  → shows an OpenLayers ScaleLine (simple line + text label)
-//   omit    → no scale control shown
 //   'false' → explicitly disables scale control
+//   omit    → no scale control shown
 
 map.setAttribute('location-display', 'latlon')
 // Options:

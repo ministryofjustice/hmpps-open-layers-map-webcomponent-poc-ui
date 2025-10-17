@@ -2,19 +2,15 @@ import maplibreCss from 'maplibre-gl/dist/maplibre-gl.css?raw'
 import type { FeatureCollection } from 'geojson'
 import { OLMapInstance, OLMapOptions } from './map/open-layers-map-instance'
 import { MapLibreMapInstance } from './map/maplibre-map-instance'
-
 import { setupOpenLayersMap } from './map/setup/setup-openlayers-map'
 import { setupMapLibreMap } from './map/setup/setup-maplibre-map'
 import { createMapDOM, createScopedStyle, getMapNonce } from './helpers/dom'
-import config from './map/config'
 import FeatureOverlay from './map/overlays/feature-overlay'
 import type { ComposableLayer, LayerStateOptions } from './map/layers/base'
 import { type MapAdapter, type MapLibrary, createOpenLayersAdapter, createMapLibreAdapter } from './map/map-adapter'
-
 import styles from '../styles/moj-map.raw.css?raw'
 import Position from './map/types/position'
-
-type TileType = 'vector' | 'raster'
+import config from './map/config'
 
 type MojMapControls = OLMapOptions['controls'] & {
   enable3DBuildings?: boolean
@@ -22,14 +18,10 @@ type MojMapControls = OLMapOptions['controls'] & {
 
 type MojMapOptions = {
   renderer: MapLibrary
-  tokenUrl: string
-  tileType: TileType
+  vectorUrl: string
   usesInternalOverlays: boolean
   overlayBodyTemplateId?: string
   overlayTitleTemplateId?: string
-  tileUrl?: string
-  vectorUrl?: string
-  apiKey?: string
 }
 
 type OLMapInstanceWithOverlay = OLMapInstance & { featureOverlay?: FeatureOverlay }
@@ -65,10 +57,7 @@ export class MojMap extends HTMLElement {
 
     this.dispatchEvent(
       new CustomEvent('map:ready', {
-        detail: {
-          map: this.map,
-          geoJson: this.geoJson,
-        },
+        detail: { map: this.map, geoJson: this.geoJson },
         bubbles: true,
         composed: true,
       }),
@@ -124,44 +113,25 @@ export class MojMap extends HTMLElement {
 
   private parseAttributes(): MojMapOptions {
     const renderer: MapLibrary = this.getAttribute('renderer') === 'maplibre' ? 'maplibre' : 'openlayers'
-    const tileType = this.getAttribute('tile-type') as TileType
-    const userTokenUrl = this.getAttribute('access-token-url')
-    const tileUrlAttr = this.getAttribute('tile-url')
-    const vectorUrlAttr = this.getAttribute('vector-url')
-    const apiKey = this.getAttribute('api-key') || undefined
-
-    const tileUrl = tileUrlAttr && tileUrlAttr.trim() ? tileUrlAttr : config.tiles.urls.tileUrl
-    const vectorUrl = vectorUrlAttr && vectorUrlAttr.trim() ? vectorUrlAttr : config.tiles.urls.vectorStyleUrl
-    const tokenUrl = tileType === 'raster' ? userTokenUrl || config.tiles.defaultTokenUrl : userTokenUrl || 'none'
-
-    if ((tileType ?? 'vector') === 'vector') {
-      const hasKeyInUrl = /\bkey=/.test(vectorUrl)
-      if (!apiKey && !hasKeyInUrl) {
-        console.warn('[moj-map] No apiKey and vectorUrl has no key – will fall back to raster tiles.')
-      }
-    }
+    const vectorAttr = this.getAttribute('vector-url') || this.getAttribute('vector-test-url')
+    const vectorUrl = vectorAttr && vectorAttr.trim() ? vectorAttr : config.tiles.urls.localVectorStyleUrl
 
     return {
       renderer,
-      tileType,
-      tokenUrl,
+      vectorUrl,
       usesInternalOverlays: this.hasAttribute('uses-internal-overlays'),
       overlayBodyTemplateId: this.getAttribute('overlay-body-template-id') || undefined,
       overlayTitleTemplateId: this.getAttribute('overlay-title-template-id') || undefined,
-      tileUrl,
-      vectorUrl,
-      apiKey,
     }
   }
 
   private parseGeoJsonFromSlot(): FeatureCollection | null {
     const script = this.querySelector('script[type="application/json"][slot="geojson-data"]')
-    if (script && script.textContent) {
+    if (script?.textContent) {
       try {
         return JSON.parse(script.textContent) as FeatureCollection
       } catch (e) {
         console.warn('Invalid GeoJSON passed to <moj-map>', e)
-        return null
       }
     }
     return null
@@ -169,12 +139,11 @@ export class MojMap extends HTMLElement {
 
   private parsePositionDataFromSlot(): Array<Position> {
     const script = this.querySelector('script[type="application/json"][slot="position-data"]')
-    if (script && script.textContent) {
+    if (script?.textContent) {
       try {
         return JSON.parse(script.textContent) as Array<Position>
       } catch (e) {
         console.warn('Invalid position data passed to <moj-map>', e)
-        return []
       }
     }
     return []
@@ -183,29 +152,25 @@ export class MojMap extends HTMLElement {
   private async initialiseMap() {
     const options = this.parseAttributes()
     const mapContainer = this.shadow.querySelector('#map') as HTMLElement
+    const overlayEl = (this.shadow.querySelector('.app-map__overlay') as HTMLElement) ?? null
 
     if (options.renderer === 'maplibre') {
       this.mapInstance = await setupMapLibreMap(
         mapContainer,
-        options.vectorUrl!,
+        options.vectorUrl,
         this.getControlOptions().enable3DBuildings ?? false,
-        options.apiKey,
       )
       this.adapter = createMapLibreAdapter(this, this.mapInstance as import('maplibre-gl').Map)
     } else {
-      const overlayEl = (this.shadow.querySelector('.app-map__overlay') as HTMLElement) ?? null
       this.mapInstance = await setupOpenLayersMap(mapContainer, {
         target: mapContainer,
-        tileType: options.tileType,
-        tokenUrl: options.tokenUrl,
-        tileUrl: options.tileUrl!,
-        vectorUrl: options.vectorUrl!,
-        apiKey: options.apiKey,
+        vectorUrl: options.vectorUrl,
         usesInternalOverlays: options.usesInternalOverlays,
         overlayEl,
         controls: this.getControlOptions(),
       })
       this.adapter = createOpenLayersAdapter(this, this.mapInstance as import('ol/Map').default)
+
       const withOverlay: OLMapInstanceWithOverlay = this.mapInstance as OLMapInstanceWithOverlay
       this.featureOverlay = withOverlay.featureOverlay
     }
@@ -213,16 +178,11 @@ export class MojMap extends HTMLElement {
 
   private getControlOptions(): MojMapControls {
     const parseBool = (name: string): boolean => this.hasAttribute(name) && this.getAttribute(name) !== 'false'
-
     const rotateAttr = this.getAttribute('rotate-control')
     let rotateOpt: false | { autoHide: boolean }
-    if (rotateAttr === 'false') {
-      rotateOpt = false
-    } else if (rotateAttr === 'auto-hide') {
-      rotateOpt = { autoHide: true }
-    } else {
-      rotateOpt = { autoHide: false }
-    }
+    if (rotateAttr === 'false') rotateOpt = false
+    else if (rotateAttr === 'auto-hide') rotateOpt = { autoHide: true }
+    else rotateOpt = { autoHide: false }
 
     const explicitScale = this.getAttribute('scale-control') as 'bar' | 'line' | null
     const legacyScaleLine = this.hasAttribute('scale-line') && this.getAttribute('scale-line') !== 'false'

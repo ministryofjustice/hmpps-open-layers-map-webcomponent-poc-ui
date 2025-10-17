@@ -1,13 +1,5 @@
 import VectorTileLayer from 'ol/layer/VectorTile'
 import { applyStyle } from 'ol-mapbox-style'
-import { supportsWebGL } from '../../helpers/browser'
-
-export type TileType = 'vector' | 'raster'
-
-export function resolveTileType(requested: string | null): TileType {
-  if (requested === 'vector' || requested === 'raster') return requested
-  return supportsWebGL() ? 'vector' : 'raster'
-}
 
 export class OrdnanceSurveyVectorTileLayer extends VectorTileLayer {
   constructor() {
@@ -15,6 +7,7 @@ export class OrdnanceSurveyVectorTileLayer extends VectorTileLayer {
   }
 
   async applyVectorStyle(styleUrl: string): Promise<void> {
+    // Strip trailing slash for consistency
     return applyStyle(this, styleUrl.replace(/\/$/, ''))
   }
 }

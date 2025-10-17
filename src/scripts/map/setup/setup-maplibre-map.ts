@@ -1,22 +1,13 @@
 import maplibregl from 'maplibre-gl'
 import { MapLibreMapInstance } from '../maplibre-map-instance'
-
-function signIfNeeded(styleBaseUrl: string, apiKey?: string): string {
-  const clean = styleBaseUrl.replace(/\/$/, '')
-  if (!apiKey) return clean
-  const url = new URL(clean, window.location.origin)
-  if (!url.searchParams.has('key')) url.searchParams.set('key', apiKey)
-  return url.toString()
-}
+import config from '../config'
 
 export async function setupMapLibreMap(
   target: HTMLElement,
   vectorUrl?: string,
   enable3DControls = false,
-  apiKey?: string,
 ): Promise<MapLibreMapInstance> {
-  const styleUrlBase = vectorUrl || 'https://api.os.uk/maps/vector/v1/resources/styles?srs=3857'
-  const styleUrl = signIfNeeded(styleUrlBase, apiKey)
+  const styleUrl = vectorUrl || config.tiles.urls.localVectorStyleUrl
 
   const map = new MapLibreMapInstance({
     target,
