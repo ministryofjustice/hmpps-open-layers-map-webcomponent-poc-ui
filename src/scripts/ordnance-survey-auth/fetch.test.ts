@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import { fetchFromOrdnanceSurvey } from './fetch'
-import { TileCache } from './tile-cache'
+import { TileCache, generateEtag } from './tile-cache'
 
 global.fetch = jest.fn() as any
 const mockFetch = global.fetch as jest.Mock
@@ -25,6 +25,7 @@ describe('fetchFromOrdnanceSurvey', () => {
     res = {
       setHeader: jest.fn(),
       send: jest.fn(),
+      end: jest.fn(),
       status: jest.fn().mockReturnThis(),
     }
 
@@ -33,6 +34,37 @@ describe('fetchFromOrdnanceSurvey', () => {
       set: jest.fn(),
       expiry: 300,
     }
+  })
+
+  it('returns 304 when client ETag matches cached version', async () => {
+    const buffer = Buffer.from('cached tile data')
+    cache.get.mockResolvedValue(buffer)
+    const etag = generateEtag(buffer)
+    req.headers = { 'if-none-match': etag }
+
+    await fetchFromOrdnanceSurvey(req as Request, res as Response, next, URL, TOKEN, {
+      cache: cache as unknown as TileCache,
+      cacheKeyPrefix: 'test',
+    })
+
+    expect(res.status).toHaveBeenCalledWith(304)
+    expect(res.end).toHaveBeenCalled()
+    expect(res.send).not.toHaveBeenCalled()
+  })
+
+  it('returns cached content when ETag differs', async () => {
+    const buffer = Buffer.from('cached tile data')
+    cache.get.mockResolvedValue(buffer)
+    req.headers = { 'if-none-match': '"different-etag"' }
+
+    await fetchFromOrdnanceSurvey(req as Request, res as Response, next, URL, TOKEN, {
+      cache: cache as unknown as TileCache,
+      cacheKeyPrefix: 'test',
+    })
+
+    expect(res.status).toHaveBeenCalledWith(200)
+    expect(res.send).toHaveBeenCalledWith(buffer)
+    expect(res.setHeader).toHaveBeenCalledWith('ETag', generateEtag(buffer))
   })
 
   it('uses cached data when available', async () => {

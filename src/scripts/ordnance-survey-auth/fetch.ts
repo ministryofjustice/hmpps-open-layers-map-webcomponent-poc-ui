@@ -30,13 +30,14 @@ export async function fetchFromOrdnanceSurvey(
       if (cached) {
         const etag = generateEtag(cached)
         if (req.headers['if-none-match'] === etag) {
-          res.status(304)
+          res.status(304).end()
           return
         }
         const fallbackType = getMimeTypeFromUrl(ordnanceSurveyApiUrl)
         if (fallbackType) res.setHeader('Content-Type', fallbackType)
         res.setHeader('ETag', etag)
         res.setHeader('Cache-Control', `public, max-age=${cache.expiry}`)
+        res.status(200).send(cached)
         return
       }
     }
