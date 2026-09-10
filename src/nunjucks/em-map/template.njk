@@ -39,7 +39,14 @@
   {% if params.attributionAllowHtml %}attribution-allow-html{% endif %}
   {% if params.controls.locationDisplay %}location-display="{{ params.controls.locationDisplay }}"{% endif %}
   {% if params.controls.enable3DBuildings %}enable-3d-buildings{% endif %}
-  {% if params.controls.grabCursor is not defined or params.controls.grabCursor %}grab-cursor{% endif %}>
+  {% if params.controls.grabCursor is not defined or params.controls.grabCursor %}grab-cursor{% endif %}
+  {% if params.controls.constrainOnlyCenter is defined %}
+    {% if params.controls.constrainOnlyCenter %}
+      constrain-only-center="true"
+    {% else %}
+      constrain-only-center="false"
+    {% endif %}
+  {% endif %}>
 
   {% if params.alerts and params.alerts.length > 0 %}
     <div slot="alerts" class="em-map__alerts">

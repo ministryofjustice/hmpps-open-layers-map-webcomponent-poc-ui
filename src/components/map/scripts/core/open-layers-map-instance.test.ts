@@ -107,4 +107,9 @@ describe('EmMapInstance', () => {
     new OLMapInstance({ target })
     expect(defaultView.default).toHaveBeenCalled()
   })
+
+  it('passes constrainOnlyCenter through to DefaultView', () => {
+    new OLMapInstance({ target, controls: { constrainOnlyCenter: false } })
+    expect(defaultView.default).toHaveBeenCalledWith({ constrainOnlyCenter: false })
+  })
 })

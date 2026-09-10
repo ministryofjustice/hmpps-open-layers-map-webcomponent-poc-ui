@@ -32,6 +32,7 @@ interface MapDemoOptions {
     scale?: 'bar' | 'line' | 'false'
     locationDisplay?: 'dms' | 'latlon' | 'false'
     grabCursor?: boolean
+    constrainOnlyCenter?: boolean
   }
   showPositions?: boolean
   showText?: boolean
@@ -241,6 +242,8 @@ export function setupMapDemo({
   if (typeof controls.zoomControl === 'boolean') map.setAttribute('zoom-control', String(controls.zoomControl))
   if (typeof controls.zoomSlider === 'boolean') map.setAttribute('zoom-slider', String(controls.zoomSlider))
   if (typeof controls.grabCursor === 'boolean') map.setAttribute('grab-cursor', String(controls.grabCursor))
+  if (typeof controls.constrainOnlyCenter === 'boolean')
+    map.setAttribute('constrain-only-center', String(controls.constrainOnlyCenter))
 
   if (attribution) map.setAttribute('attribution', attribution)
   if (attributionAllowHtml) map.setAttribute('attribution-allow-html', '')

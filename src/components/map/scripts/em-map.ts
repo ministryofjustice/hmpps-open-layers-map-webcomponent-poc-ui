@@ -718,6 +718,9 @@ export class EmMap extends HTMLElement {
     const zoomControl =
       zoomSlider || !this.hasAttribute('zoom-control') || this.getAttribute('zoom-control') !== 'false'
     const grabCursor = parseBool('grab-cursor')
+    const constrainOnlyCenter = !this.hasAttribute('constrain-only-center')
+      ? true
+      : this.getAttribute('constrain-only-center') !== 'false'
     let scaleControl: 'bar' | 'line' | undefined
 
     if (scaleAttr === 'bar' || scaleAttr === 'line') {
@@ -760,6 +763,7 @@ export class EmMap extends HTMLElement {
       locationDisplay,
       locationDisplaySource,
       enable3DBuildings: parseBool('enable-3d-buildings'),
+      constrainOnlyCenter,
     }
   }
 

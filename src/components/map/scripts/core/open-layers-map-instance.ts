@@ -26,6 +26,7 @@ export interface OLMapOptions {
     locationDisplay?: 'dms' | 'latlon'
     locationDisplaySource?: 'centre' | 'pointer'
     enable3DBuildings?: boolean
+    constrainOnlyCenter?: boolean
   }
 }
 
@@ -111,7 +112,7 @@ export class OLMapInstance extends Map {
       overlays: options.overlays || [],
       interactions,
       controls,
-      view: new DefaultView(),
+      view: new DefaultView({ constrainOnlyCenter: controlOptions.constrainOnlyCenter }),
     })
   }
 }
