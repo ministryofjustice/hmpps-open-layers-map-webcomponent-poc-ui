@@ -204,6 +204,37 @@ describe('applyEntryExitToFeatures', () => {
     expect(features.length).toBe(3)
   })
 
+  it('supports a single shared property name for entry and exit (string form, backwards compatible)', () => {
+    const features = [
+      new Feature({
+        geometry: new LineString([
+          [0, 0],
+          [10, 0],
+        ]),
+      }),
+    ]
+
+    const testPositions = [
+      { longitude: 0, latitude: 0, direction: 90 },
+      { longitude: 10, latitude: 0, direction: 90 },
+    ] as any
+
+    applyEntryExitToFeatures(features, testPositions, {
+      enabled: true,
+      extensionDistanceMeters: 10,
+      direction: { property: 'direction', units: 'degrees' },
+    })
+
+    expect(features.length).toBe(3)
+
+    const entryCoords = features[0].getGeometry()!.getCoordinates()
+    const exitCoords = features[2].getGeometry()!.getCoordinates()
+
+    // direction: 90° (East) → entry tail extends West (reversed), exit tail extends East (as-is)
+    expect(entryCoords[0][0]).toBeLessThan(entryCoords[1][0])
+    expect(exitCoords[1][0]).toBeGreaterThan(exitCoords[0][0])
+  })
+
   it('does nothing when disabled', () => {
     const features = [
       new Feature({
@@ -222,5 +253,32 @@ describe('applyEntryExitToFeatures', () => {
     applyEntryExitToFeatures(features, testPositions, { enabled: false })
 
     expect(features.length).toBe(1)
+  })
+
+  it('supports separate entry/exit property names (single point)', () => {
+    const features = [
+      new Feature({
+        geometry: new LineString([[0, 0]]),
+      }),
+    ]
+
+    // A single point can carry distinct entry and exit bearings simultaneously,
+    // which a single shared property name could not represent.
+    const testPositions = [{ longitude: 0, latitude: 0, entryBearing: 90, exitBearing: 180 }] as any
+
+    applyEntryExitToFeatures(features, testPositions, {
+      enabled: true,
+      extensionDistanceMeters: 10,
+      direction: { property: { entry: 'entryBearing', exit: 'exitBearing' }, units: 'degrees' },
+    })
+
+    expect(features.length).toBe(3)
+
+    const entryCoords = features[0].getGeometry()!.getCoordinates()
+    const exitCoords = features[2].getGeometry()!.getCoordinates()
+
+    // Entry tail extends opposite the entry bearing (90° = East), exit tail extends along the exit bearing (180° = South)
+    expect(entryCoords[0][0]).toBeLessThan(entryCoords[1][0])
+    expect(exitCoords[1][1]).toBeLessThan(exitCoords[0][1])
   })
 })

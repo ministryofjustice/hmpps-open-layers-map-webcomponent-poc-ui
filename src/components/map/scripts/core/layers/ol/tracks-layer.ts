@@ -24,6 +24,15 @@ import ArrowStyle from '../../styles/arrow'
 
 type DirectionUnits = 'degrees' | 'radians'
 
+// Used to look up a numeric bearing/direction value on a Position. Can be a string or an
+// object with distinct entry and exit property names for single point edge-cases.
+type DirectionProperty = string | { entry?: string; exit?: string }
+
+const resolveDirectionProperty = (
+  property: DirectionProperty | undefined,
+  end: 'entry' | 'exit',
+): string | undefined => (typeof property === 'string' || property === undefined ? property : property[end])
+
 type OLTracksLayerStyle = {
   stroke: {
     color: string
@@ -54,7 +63,7 @@ type OLTracksLayerOptions = {
     enabled?: boolean
     extensionDistanceMeters?: number
     direction?: {
-      property?: string
+      property?: DirectionProperty // e.g. "direction" or { entry: "entryBearing", exit: "exitBearing" }
       units?: DirectionUnits
     }
     centre?: [number, number]
@@ -229,11 +238,12 @@ const applyEntryExitToFeatures = (
   if (!options?.enabled || !positions.length || !features.length) return
 
   const extensionDistance = options.extensionDistanceMeters ?? 50
-  const directionProperty = options.direction?.property
+  const entryProperty = resolveDirectionProperty(options.direction?.property, 'entry')
+  const exitProperty = resolveDirectionProperty(options.direction?.property, 'exit')
   const directionUnits = options.direction?.units ?? 'degrees'
 
-  const entryVector = getEntryVector(positions, directionProperty, directionUnits)
-  const exitVector = getExitVector(positions, directionProperty, directionUnits)
+  const entryVector = getEntryVector(positions, entryProperty, directionUnits)
+  const exitVector = getExitVector(positions, exitProperty, directionUnits)
 
   const centreCoordinates = options.centre
   const radius = options.radiusMeters
