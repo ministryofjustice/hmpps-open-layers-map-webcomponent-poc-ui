@@ -261,6 +261,7 @@ const applyEntryExitToFeatures = (
     features.unshift(
       new Feature({
         geometry: new LineString([entry, first]),
+        trackSegmentType: 'entry',
       }),
     )
   }
@@ -279,6 +280,7 @@ const applyEntryExitToFeatures = (
     features.push(
       new Feature({
         geometry: new LineString([last, exit]),
+        trackSegmentType: 'exit',
       }),
     )
   }
@@ -353,10 +355,20 @@ const createStyleFunction =
       color = result.stroke?.color ?? color
     }
 
-    return [
-      new LineStyle(color, resolution, lineDash),
-      ...getArrowStyles(start, rotation, magnitude, resolution, avoidCoordinates),
-    ]
+    const lineStyle = new LineStyle(color, resolution, lineDash)
+    const trackSegmentType = (feature as Feature).get('trackSegmentType') as 'entry' | 'exit' | undefined
+
+    // Entry lines are lines with no arrows
+    if (trackSegmentType === 'entry') {
+      return [lineStyle]
+    }
+
+    // Exit lines only need a single arrow at the tip to indicate travel continues beyond the tracked data
+    if (trackSegmentType === 'exit') {
+      return [lineStyle, new ArrowStyle(end, resolution, rotation)]
+    }
+
+    return [lineStyle, ...getArrowStyles(start, rotation, magnitude, resolution, avoidCoordinates)]
   }
 
 const DEFAULT_VISIBILITY = false
