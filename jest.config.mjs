@@ -8,6 +8,7 @@ const commonProjectSettings = {
   setupFilesAfterEnv: ['<rootDir>/src/jest.setup.ts'],
   moduleNameMapper: {
     '^ol/(.*)$': '<rootDir>/node_modules/ol/$1',
+    '^@map/(.*)$': '<rootDir>/src/components/map/$1',
     '\\.(css|scss)$': 'identity-obj-proxy',
     '\\.css\\?raw$': 'jest-transform-stub',
   },
