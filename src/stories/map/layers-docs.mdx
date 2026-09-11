@@ -521,7 +521,7 @@ emMap.addLayer(new TracksLayer({
 
 ## Direction-aware behaviour
 
-If your data includes a direction (bearing), you can use it.cCan specify degrees or radians:
+If your data includes a direction (bearing), you can use it. Can specify degrees or radians:
 
 ```ts
 emMap.addLayer(new TracksLayer({
@@ -539,12 +539,35 @@ emMap.addLayer(new TracksLayer({
 
 ---
 
+## Separate entry/exit properties (single-point support)
+
+`direction.property` can also be an object with distinct **entry** and **exit** property names,
+rather than a single shared string. This is required for a track with only a **single point**,
+where one position needs two different bearing values (the bearing it arrived from, and the
+bearing it left on) that a single shared property name couldn't represent.
+
+```ts
+emMap.addLayer(new TracksLayer({
+  positions, // e.g. a single position with `entryBearing` and `exitBearing` fields
+
+  entryExit: {
+    enabled: true,
+    direction: {
+      property: { entry: 'entryBearing', exit: 'exitBearing' },
+      units: 'degrees',
+    },
+  },
+}))
+```
+
+---
+
 ## Behaviour rules
 
 ### When `direction.property` is provided
 
-Entry - Uses **first point direction**, reversed
-Exit - Uses **last point direction**, as-is
+Entry - Uses **first point direction**, reversed (or the `entry` property, if an object is used)
+Exit - Uses **last point direction**, as-is (or the `exit` property, if an object is used)
 
 ---
 
@@ -552,6 +575,15 @@ Exit - Uses **last point direction**, as-is
 
 Entry - Uses **first segment (line between points) direction**, reversed
 Exit - Uses **last segment (line between points) direction**, as-is
+
+---
+
+## Entry/exit arrows
+
+Entry and exit lines are styled differently to interior track segments:
+
+- **Entry line** - no direction arrow is drawn. It represents travel *before* the tracked data, so it shouldn't imply a specific direction.
+- **Exit line** - a **single arrow** is drawn at the tip (end) of the line, to indicate travel continues beyond the tracked data.
 
 ---
 

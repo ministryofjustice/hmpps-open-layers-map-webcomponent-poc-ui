@@ -24,6 +24,22 @@ import ArrowStyle from '../../styles/arrow'
 
 type DirectionUnits = 'degrees' | 'radians'
 
+/**
+ * Used to look up a numeric bearing/direction value on a Position. Not a fixed set of values —
+ * it's just the name of whichever field on the consumers Position objects holds that bearing, e.g.
+ * "direction", "bearing" or "heading". Can be a single string (used for both entry and exit
+ * lookups) or an object with distinct entry and exit property names, e.g.
+ * { bearing: "entryBearing", exit: "exitBearing" }, for single point edge-cases where one
+ * position needs two different bearing values. The value found is interpreted using
+ * direction.units ("degrees" or "radians"), which is separate from this property name.
+ */
+type DirectionProperty = string | { entry?: string; exit?: string }
+
+const resolveDirectionProperty = (
+  property: DirectionProperty | undefined,
+  end: 'entry' | 'exit',
+): string | undefined => (typeof property === 'string' || property === undefined ? property : property[end])
+
 type OLTracksLayerStyle = {
   stroke: {
     color: string
@@ -54,7 +70,7 @@ type OLTracksLayerOptions = {
     enabled?: boolean
     extensionDistanceMeters?: number
     direction?: {
-      property?: string
+      property?: DirectionProperty // e.g. "direction" or { entry: "entryBearing", exit: "exitBearing" }
       units?: DirectionUnits
     }
     centre?: [number, number]
@@ -229,11 +245,12 @@ const applyEntryExitToFeatures = (
   if (!options?.enabled || !positions.length || !features.length) return
 
   const extensionDistance = options.extensionDistanceMeters ?? 50
-  const directionProperty = options.direction?.property
+  const entryProperty = resolveDirectionProperty(options.direction?.property, 'entry')
+  const exitProperty = resolveDirectionProperty(options.direction?.property, 'exit')
   const directionUnits = options.direction?.units ?? 'degrees'
 
-  const entryVector = getEntryVector(positions, directionProperty, directionUnits)
-  const exitVector = getExitVector(positions, directionProperty, directionUnits)
+  const entryVector = getEntryVector(positions, entryProperty, directionUnits)
+  const exitVector = getExitVector(positions, exitProperty, directionUnits)
 
   const centreCoordinates = options.centre
   const radius = options.radiusMeters
@@ -251,6 +268,7 @@ const applyEntryExitToFeatures = (
     features.unshift(
       new Feature({
         geometry: new LineString([entry, first]),
+        trackSegmentType: 'entry',
       }),
     )
   }
@@ -269,6 +287,7 @@ const applyEntryExitToFeatures = (
     features.push(
       new Feature({
         geometry: new LineString([last, exit]),
+        trackSegmentType: 'exit',
       }),
     )
   }
@@ -343,10 +362,20 @@ const createStyleFunction =
       color = result.stroke?.color ?? color
     }
 
-    return [
-      new LineStyle(color, resolution, lineDash),
-      ...getArrowStyles(start, rotation, magnitude, resolution, avoidCoordinates),
-    ]
+    const lineStyle = new LineStyle(color, resolution, lineDash)
+    const trackSegmentType = (feature as Feature).get('trackSegmentType') as 'entry' | 'exit' | undefined
+
+    // Entry lines are lines with no arrows
+    if (trackSegmentType === 'entry') {
+      return [lineStyle]
+    }
+
+    // Exit lines only need a single arrow at the tip to indicate travel continues beyond the tracked data
+    if (trackSegmentType === 'exit') {
+      return [lineStyle, new ArrowStyle(end, resolution, rotation)]
+    }
+
+    return [lineStyle, ...getArrowStyles(start, rotation, magnitude, resolution, avoidCoordinates)]
   }
 
 const DEFAULT_VISIBILITY = false

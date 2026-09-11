@@ -17,6 +17,7 @@ type SetupStoryArgs = {
   'controls.scale': 'bar' | 'line' | 'false'
   'controls.locationDisplay': 'dms' | 'latlon' | 'false'
   'controls.grabCursor': boolean
+  'controls.constrainOnlyCenter': boolean
 
   'query.lat': string
   'query.lng': string
@@ -94,6 +95,12 @@ const meta = {
       control: 'boolean',
       table: { category: 'Controls' },
     },
+    'controls.constrainOnlyCenter': {
+      control: 'boolean',
+      description:
+        'When true (default), only the view centre is constrained to the UK extent, allowing panning/zooming past the coastline with an elastic snap-back. When false, the whole viewport is constrained, blocking panning past the bounds more aggressively.',
+      table: { category: 'Controls' },
+    },
 
     'query.lat': {
       control: 'text',
@@ -164,6 +171,7 @@ const meta = {
         scale: storyArgs['controls.scale'],
         locationDisplay: storyArgs['controls.locationDisplay'],
         grabCursor: storyArgs['controls.grabCursor'],
+        constrainOnlyCenter: storyArgs['controls.constrainOnlyCenter'],
       },
       showPositions: true,
       showTracks: false,
@@ -200,6 +208,7 @@ export const Example: Story = {
     'controls.scale': 'false',
     'controls.locationDisplay': 'false',
     'controls.grabCursor': true,
+    'controls.constrainOnlyCenter': true,
 
     'query.lat': '51.5074',
     'query.lng': '-0.1278',
@@ -257,7 +266,8 @@ export const Example: Story = {
     olRotateTooltip: ${args['controls.olRotateTooltip']},
     zoomControl: ${args['controls.zoomControl']},
     zoomSlider: ${args['controls.zoomSlider']},
-    grabCursor: ${args['controls.grabCursor']}
+    grabCursor: ${args['controls.grabCursor']},
+    constrainOnlyCenter: ${args['controls.constrainOnlyCenter']}
   }
 }) }}`
         },

@@ -114,6 +114,42 @@ describe('OLTracksLayer (OpenLayers library)', () => {
     // Expect one less arrow
     expect(avoidArrowStyles.length).toBe(arrowStyles.length - 1)
   })
+
+  it('draws no arrows on the entry line and exactly one arrow at the tip of the exit line', () => {
+    const resolution = 3
+    const layer = new OLTracksLayer({
+      positions,
+      title: '',
+      entryExit: { enabled: true, extensionDistanceMeters: 50 },
+    })
+    const source = layer.getSource()
+    const features = source?.getFeatures() || []
+    const styleFunction = layer.getStyleFunction()!
+
+    // applyEntryExitToFeatures tags the entry/exit features; VectorSource does not preserve insertion order
+    const entryFeature = features.find(f => f.get('trackSegmentType') === 'entry')!
+    const exitFeature = features.find(f => f.get('trackSegmentType') === 'exit')!
+
+    expect(entryFeature).toBeDefined()
+    expect(exitFeature).toBeDefined()
+
+    const entryStyles = styleFunction(entryFeature, resolution) as Array<Style>
+    expect(entryStyles[0]).toBeInstanceOf(LineStyle)
+    expect(entryStyles.filter(s => s instanceof ArrowStyle).length).toBe(0)
+
+    const exitStyles = styleFunction(exitFeature, resolution) as Array<Style>
+    expect(exitStyles[0]).toBeInstanceOf(LineStyle)
+    const exitArrows = exitStyles.filter(s => s instanceof ArrowStyle)
+    expect(exitArrows.length).toBe(1)
+
+    // The arrow should sit at the tip (end) of the exit line, not drawn at intervals part way along it
+    const exitGeometry = exitFeature.getGeometry()!
+    const exitCoords = exitGeometry.getCoordinates()
+    const tip = exitCoords[exitCoords.length - 1]
+    const arrowCoord = (exitArrows[0].getGeometry() as Point).getCoordinates()
+    expect(arrowCoord[0]).toBeCloseTo(tip[0])
+    expect(arrowCoord[1]).toBeCloseTo(tip[1])
+  })
 })
 
 describe('Entry / Exit vector logic', () => {
@@ -204,6 +240,37 @@ describe('applyEntryExitToFeatures', () => {
     expect(features.length).toBe(3)
   })
 
+  it('supports a single shared property name for entry and exit (string form, backwards compatible)', () => {
+    const features = [
+      new Feature({
+        geometry: new LineString([
+          [0, 0],
+          [10, 0],
+        ]),
+      }),
+    ]
+
+    const testPositions = [
+      { longitude: 0, latitude: 0, direction: 90 },
+      { longitude: 10, latitude: 0, direction: 90 },
+    ] as any
+
+    applyEntryExitToFeatures(features, testPositions, {
+      enabled: true,
+      extensionDistanceMeters: 10,
+      direction: { property: 'direction', units: 'degrees' },
+    })
+
+    expect(features.length).toBe(3)
+
+    const entryCoords = features[0].getGeometry()!.getCoordinates()
+    const exitCoords = features[2].getGeometry()!.getCoordinates()
+
+    // direction: 90° (East) → entry tail extends West (reversed), exit tail extends East (as-is)
+    expect(entryCoords[0][0]).toBeLessThan(entryCoords[1][0])
+    expect(exitCoords[1][0]).toBeGreaterThan(exitCoords[0][0])
+  })
+
   it('does nothing when disabled', () => {
     const features = [
       new Feature({
@@ -222,5 +289,32 @@ describe('applyEntryExitToFeatures', () => {
     applyEntryExitToFeatures(features, testPositions, { enabled: false })
 
     expect(features.length).toBe(1)
+  })
+
+  it('supports separate entry/exit property names (single point)', () => {
+    const features = [
+      new Feature({
+        geometry: new LineString([[0, 0]]),
+      }),
+    ]
+
+    // A single point can carry distinct entry and exit bearings simultaneously,
+    // which a single shared property name could not represent.
+    const testPositions = [{ longitude: 0, latitude: 0, entryBearing: 90, exitBearing: 180 }] as any
+
+    applyEntryExitToFeatures(features, testPositions, {
+      enabled: true,
+      extensionDistanceMeters: 10,
+      direction: { property: { entry: 'entryBearing', exit: 'exitBearing' }, units: 'degrees' },
+    })
+
+    expect(features.length).toBe(3)
+
+    const entryCoords = features[0].getGeometry()!.getCoordinates()
+    const exitCoords = features[2].getGeometry()!.getCoordinates()
+
+    // Entry tail extends opposite the entry bearing (90° = East), exit tail extends along the exit bearing (180° = South)
+    expect(entryCoords[0][0]).toBeLessThan(entryCoords[1][0])
+    expect(exitCoords[1][1]).toBeLessThan(exitCoords[0][1])
   })
 })
