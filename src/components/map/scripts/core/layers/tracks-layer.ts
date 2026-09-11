@@ -6,8 +6,15 @@ import { Position } from '../types/position'
 
 export type DirectionUnits = 'degrees' | 'radians'
 
-// Used to look up a numeric bearing/direction value on a Position. Can be a string or an
-// object with distinct entry and exit property names for single point edge-cases.
+/**
+ * Used to look up a numeric bearing/direction value on a Position. Not a fixed set of values —
+ * it's just the name of whichever field on the consumers Position objects holds that bearing, e.g.
+ * "direction", "bearing" or "heading". Can be a single string (used for both entry and exit
+ * lookups) or an object with distinct entry and exit property names, e.g.
+ * { bearing: "entryBearing", exit: "exitBearing" }, for single point edge-cases where one
+ * position needs two different bearing values. The value found is interpreted using
+ * direction.units ("degrees" or "radians"), which is separate from this property name.
+ */
 export type DirectionProperty = string | { entry?: string; exit?: string }
 
 export type TracksLayerOptions = {
